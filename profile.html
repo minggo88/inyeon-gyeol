@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인연결 · 내 프로필</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap');
+:root{--bg:#0a0a1a;--panel:#12102a;--panel2:#1a1640;--line:#2a2555;--text:#f0eeff;--muted:#9e97c0;--accent:#c9a84c;--accent2:#e8d48b;--warn:#e8a855;--glow:#c9a84c33;--shadow:0 20px 60px #00001088;--glass:rgba(25,20,60,0.65);--glass-border:rgba(200,168,76,0.15);--ok:#4ade80;--danger:#f87171}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);background-image:radial-gradient(ellipse at 20% 0%,#1e1545 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,#15102e 0%,transparent 50%);color:var(--text);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,.15),transparent),radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,.12),transparent),radial-gradient(1.5px 1.5px at 85% 15%,rgba(201,168,76,.15),transparent);pointer-events:none;z-index:0}
+.back-home{position:fixed;top:16px;left:16px;z-index:100;display:flex;align-items:center;gap:6px;background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--muted);text-decoration:none;padding:8px 14px;border-radius:99px;font-size:13px;font-weight:600;transition:border-color .2s,color .2s,background .2s}.back-home:hover{border-color:rgba(201,168,76,.4);color:var(--accent2);background:rgba(25,20,60,0.8)}.back-home svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.app{max-width:520px;margin:auto;padding:80px 18px 60px;position:relative;z-index:1}
+.page-title{font-family:"Noto Serif KR",serif;font-size:28px;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,#f0eeff,#e8d48b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.page-sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:32px}
+.card{background:linear-gradient(160deg,rgba(22,18,50,0.85),rgba(14,12,30,0.9));border:1px solid var(--line);border-radius:20px;padding:28px 24px;margin-bottom:20px}
+.card h3{font-size:15px;color:var(--accent2);margin-bottom:16px;font-weight:700}
+.avatar-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.avatar-opt{width:48px;height:48px;border-radius:14px;border:2px solid var(--line);background:rgba(20,16,50,0.6);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:border-color .2s,transform .15s}
+.avatar-opt:hover{border-color:rgba(201,168,76,.3);transform:scale(1.08)}
+.avatar-opt.sel{border-color:var(--accent);background:rgba(201,168,76,.1);transform:scale(1.1)}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input,.field select{width:100%;background:rgba(15,12,35,0.8);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--text);font-size:15px;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field input::placeholder{color:#5a5280}
+.row{display:flex;gap:10px}
+.row .field{flex:1}
+.choice{display:flex;gap:12px;flex-wrap:wrap}
+.choice label{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text);cursor:pointer}
+.choice input[type="radio"]{accent-color:var(--accent)}
+.seg{display:flex;align-items:center;gap:4px}
+.seg input{width:60px;text-align:center;background:rgba(15,12,35,0.8);border:1px solid var(--line);border-radius:8px;padding:10px 6px;color:var(--text);font-size:15px;outline:none}
+.seg input.y{width:80px}
+.seg span{color:var(--muted);font-size:14px}
+.seg input:focus{border-color:var(--accent)}
+.btn-primary{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--accent),#b8932f);color:#1a1640;font-size:16px;font-weight:700;cursor:pointer;transition:opacity .2s;margin-top:8px}
+.btn-primary:hover{opacity:.9}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-danger{width:100%;padding:12px;border:1px solid var(--danger);border-radius:12px;background:transparent;color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:12px}
+.btn-danger:hover{background:rgba(248,113,113,.1)}
+.status{text-align:center;padding:12px;border-radius:10px;font-size:14px;margin-bottom:20px;display:none}
+.status.ok{display:block;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--ok)}
+.status.err{display:block;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--danger)}
+.status.info{display:block;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);color:var(--accent2)}
+.profile-display{text-align:center;padding:20px}
+.profile-display .big-avatar{font-size:64px;margin-bottom:12px}
+.profile-display .nick{font-size:20px;font-weight:700;color:var(--accent2);margin-bottom:4px}
+.profile-display .info{font-size:14px;color:var(--muted);margin-bottom:4px}
+.btn-edit{display:inline-block;margin-top:16px;padding:10px 24px;border:1px solid var(--glass-border);border-radius:99px;background:var(--glass);color:var(--accent2);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:border-color .2s}
+.btn-edit:hover{border-color:rgba(201,168,76,.4)}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+.footer{color:#6a6290;font-size:12px;text-align:center;margin-top:24px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<script>
+/* ── 인연결 Supabase Client ── */
+/* ⚠️ 아래 URL과 KEY를 본인의 Supabase 프로젝트 값으로 교체하세요 */
+const SUPABASE_URL='__SUPABASE_URL__';
+const SUPABASE_KEY='__SUPABASE_ANON_KEY__';
+
+const _sb=(SUPABASE_URL.startsWith('__'))?null:window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const InyeonDB={
+  _ready:!!_sb,
+  getDeviceId(){
+    let id=null;
+    try{id=localStorage.getItem('inyeon_device_id')}catch(e){}
+    if(!id){
+      id=crypto.randomUUID?crypto.randomUUID():
+        'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+          const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16)});
+      try{localStorage.setItem('inyeon_device_id',id)}catch(e){}
+    }
+    return id;
+  },
+
+  async getProfile(){
+    if(!_sb)return null;
+    const{data,error}=await _sb.from('profiles').select('*')
+      .eq('device_id',this.getDeviceId()).single();
+    if(error&&error.code!=='PGRST116')console.error('getProfile:',error);
+    return data;
+  },
+
+  async saveProfile(p){
+    if(!_sb)return{data:null,error:{message:'Supabase 미설정'}};
+    const{data,error}=await _sb.from('profiles')
+      .upsert({...p,device_id:this.getDeviceId(),updated_at:new Date().toISOString()},
+        {onConflict:'device_id'}).select().single();
+    if(error)console.error('saveProfile:',error);
+    return{data,error};
+  },
+
+  async deleteProfile(){
+    if(!_sb)return false;
+    const{error}=await _sb.from('profiles').delete()
+      .eq('device_id',this.getDeviceId());
+    return !error;
+  },
+
+  async saveHistory(entry){
+    if(!_sb)return{data:null,error:{message:'Supabase 미설정'}};
+    const{data,error}=await _sb.from('history')
+      .insert({...entry,device_id:this.getDeviceId()}).select().single();
+    if(error)console.error('saveHistory:',error);
+    return{data,error};
+  },
+
+  async getHistory(type,limit=50){
+    if(!_sb)return[];
+    let q=_sb.from('history').select('id,content_type,title,input_summary,created_at')
+      .eq('device_id',this.getDeviceId()).order('created_at',{ascending:false}).limit(limit);
+    if(type)q=q.eq('content_type',type);
+    const{data,error}=await q;
+    if(error)console.error('getHistory:',error);
+    return data||[];
+  },
+
+  async getHistoryDetail(id){
+    if(!_sb)return null;
+    const{data}=await _sb.from('history').select('*')
+      .eq('id',id).eq('device_id',this.getDeviceId()).single();
+    return data;
+  },
+
+  async deleteHistory(id){
+    if(!_sb)return false;
+    const{error}=await _sb.from('history').delete()
+      .eq('id',id).eq('device_id',this.getDeviceId());
+    return !error;
+  }
+};
+
+</script>
+</head>
+<body>
+<a href="saju-main.html" class="back-home"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>메인</a>
+<main class="app">
+  <h1 class="page-title">내 프로필</h1>
+  <p class="page-sub">프로필을 등록하면 매번 정보를 입력하지 않아도 돼요</p>
+
+  <div id="statusMsg" class="status"></div>
+
+  <!-- 로딩 -->
+  <div id="loadingState" class="loading">프로필 확인 중...</div>
+
+  <!-- 프로필 보기 모드 -->
+  <div id="viewMode" style="display:none">
+    <div class="card">
+      <div class="profile-display">
+        <div class="big-avatar" id="vAvatar">🔮</div>
+        <div class="nick" id="vNick"></div>
+        <div class="info" id="vName"></div>
+        <div class="info" id="vBirth"></div>
+        <div class="info" id="vGender"></div>
+        <button class="btn-edit" onclick="switchToEdit()">수정하기</button>
+      </div>
+    </div>
+    <button class="btn-danger" onclick="confirmDelete()">프로필 삭제</button>
+  </div>
+
+  <!-- 편집/등록 모드 -->
+  <div id="editMode" style="display:none">
+    <div class="card">
+      <h3>아바타</h3>
+      <div class="avatar-grid" id="avatarGrid"></div>
+    </div>
+
+    <div class="card">
+      <h3>기본 정보</h3>
+      <div class="field"><label>닉네임</label><input id="nickname" placeholder="표시될 이름" maxlength="20"></div>
+      <div class="field"><label>이름 <span style="color:#5a5280">(사주 계산용, 선택)</span></label><input id="name" placeholder="실명" maxlength="20"></div>
+    </div>
+
+    <div class="card">
+      <h3>출생 정보</h3>
+      <div class="field"><label>생년월일</label>
+        <div class="seg"><input id="bdY" class="y" inputmode="numeric" maxlength="4" placeholder="YYYY"><span>-</span><input id="bdM" inputmode="numeric" maxlength="2" placeholder="MM"><span>-</span><input id="bdD" inputmode="numeric" maxlength="2" placeholder="DD"></div>
+      </div>
+      <div class="field"><label>달력 기준</label>
+        <div class="choice"><label><input type="radio" name="calendar" value="solar" checked> 양력</label><label><input type="radio" name="calendar" value="lunar"> 음력</label></div>
+      </div>
+      <div class="field"><label>출생시간 <span style="color:#5a5280">(선택)</span></label>
+        <div class="seg"><input id="btH" inputmode="numeric" maxlength="2" placeholder="시"><span>:</span><input id="btM" inputmode="numeric" maxlength="2" placeholder="분"><span style="color:#5a5280;font-size:12px;margin-left:4px">24시간제 · 모르면 비워두세요</span></div>
+      </div>
+      <div class="field"><label>성별</label>
+        <div class="choice"><label><input type="radio" name="gender" value="none" checked> 선택 안 함</label><label><input type="radio" name="gender" value="M"> 남</label><label><input type="radio" name="gender" value="F"> 여</label></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="saveBtn" onclick="saveProfile()">저장하기</button>
+    <div id="cancelWrap" style="display:none">
+      <button class="btn-danger" style="border-color:var(--line);color:var(--muted)" onclick="cancelEdit()">취소</button>
+    </div>
+  </div>
+
+  <div class="cross-nav" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:30px;margin-bottom:16px"><a href="saju-report.html" style="display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:99px;border:1px solid #2a2555;background:rgba(25,20,60,0.65);backdrop-filter:blur(12px);color:#9e97c0;text-decoration:none;font-size:13px;font-weight:600;transition:border-color .2s,color .2s">✦ 사주 리포트</a><a href="tarot-draw.html" style="display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:99px;border:1px solid #2a2555;background:rgba(25,20,60,0.65);backdrop-filter:blur(12px);color:#9e97c0;text-decoration:none;font-size:13px;font-weight:600;transition:border-color .2s,color .2s">🔮 타로 카드뽑기</a><a href="tarot-daily.html" style="display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:99px;border:1px solid #2a2555;background:rgba(25,20,60,0.65);backdrop-filter:blur(12px);color:#9e97c0;text-decoration:none;font-size:13px;font-weight:600;transition:border-color .2s,color .2s">☀️ 오늘의 타로</a></div>
+<div class="footer">저장된 정보는 이 기기에서만 사용됩니다.</div>
+</main>
+
+<script>
+const AVATARS=['🔮','✨','🌙','⭐','🌸','🎭','🦋','🌊','🔥','🍀','💎','🐉','🦊','🪷','🌈','🧿'];
+let selectedAvatar='🔮';
+let currentProfile=null;
+
+/* 아바타 그리드 */
+const grid=document.getElementById('avatarGrid');
+AVATARS.forEach(e=>{
+  const d=document.createElement('div');
+  d.className='avatar-opt'+(e==='🔮'?' sel':'');
+  d.textContent=e;
+  d.onclick=()=>{
+    grid.querySelectorAll('.avatar-opt').forEach(x=>x.classList.remove('sel'));
+    d.classList.add('sel');
+    selectedAvatar=e;
+  };
+  grid.appendChild(d);
+});
+
+/* 유틸 */
+function val(id){return document.getElementById(id).value.trim()}
+function showStatus(msg,type){const el=document.getElementById('statusMsg');el.textContent=msg;el.className='status '+type;setTimeout(()=>{if(el.textContent===msg)el.style.display='none'},4000)}
+
+/* 프로필 로드 */
+async function loadProfile(){
+  const loading=document.getElementById('loadingState');
+  if(!InyeonDB._ready){
+    loading.style.display='none';
+    document.getElementById('editMode').style.display='block';
+    showStatus('Supabase가 설정되지 않았습니다. supabase.js의 URL과 KEY를 입력하세요.','info');
+    return;
+  }
+  try{
+    currentProfile=await InyeonDB.getProfile();
+  }catch(e){console.error(e)}
+  loading.style.display='none';
+  if(currentProfile){
+    showView();
+  }else{
+    document.getElementById('editMode').style.display='block';
+  }
+}
+
+/* 프로필 보기 */
+function showView(){
+  const p=currentProfile;
+  document.getElementById('vAvatar').textContent=p.avatar||'🔮';
+  document.getElementById('vNick').textContent=p.nickname||p.name||'이름 없음';
+  document.getElementById('vName').textContent=p.name?`이름: ${p.name}`:'';
+  const cal=p.calendar_type==='lunar'?'음력':'양력';
+  let birth=`${cal} ${p.birth_year}.${String(p.birth_month).padStart(2,'0')}.${String(p.birth_day).padStart(2,'0')}`;
+  if(p.birth_hour!=null)birth+=` ${String(p.birth_hour).padStart(2,'0')}:${String(p.birth_minute||0).padStart(2,'0')}`;
+  document.getElementById('vBirth').textContent=birth;
+  const gMap={M:'남성',F:'여성',none:''};
+  document.getElementById('vGender').textContent=gMap[p.gender]||'';
+  document.getElementById('viewMode').style.display='block';
+  document.getElementById('editMode').style.display='none';
+}
+
+/* 편집 모드 전환 */
+function switchToEdit(){
+  const p=currentProfile;
+  if(p){
+    document.getElementById('nickname').value=p.nickname||'';
+    document.getElementById('name').value=p.name||'';
+    document.getElementById('bdY').value=p.birth_year;
+    document.getElementById('bdM').value=String(p.birth_month).padStart(2,'0');
+    document.getElementById('bdD').value=String(p.birth_day).padStart(2,'0');
+    if(p.birth_hour!=null){
+      document.getElementById('btH').value=String(p.birth_hour).padStart(2,'0');
+      document.getElementById('btM').value=String(p.birth_minute||0).padStart(2,'0');
+    }
+    document.querySelector(`input[name="calendar"][value="${p.calendar_type||'solar'}"]`).checked=true;
+    document.querySelector(`input[name="gender"][value="${p.gender||'none'}"]`).checked=true;
+    /* avatar */
+    selectedAvatar=p.avatar||'🔮';
+    grid.querySelectorAll('.avatar-opt').forEach(x=>{x.classList.toggle('sel',x.textContent===selectedAvatar)});
+    document.getElementById('cancelWrap').style.display='block';
+  }
+  document.getElementById('viewMode').style.display='none';
+  document.getElementById('editMode').style.display='block';
+  document.getElementById('saveBtn').textContent=currentProfile?'수정 저장':'저장하기';
+}
+
+function cancelEdit(){
+  document.getElementById('editMode').style.display='none';
+  showView();
+}
+
+/* 저장 */
+async function saveProfile(){
+  const y=parseInt(val('bdY')),m=parseInt(val('bdM')),d=parseInt(val('bdD'));
+  if(!y||!m||!d||y<1900||y>2100||m<1||m>12||d<1||d>31){
+    showStatus('생년월일을 정확히 입력해주세요.','err');return;
+  }
+  const btn=document.getElementById('saveBtn');
+  btn.disabled=true;btn.textContent='저장 중...';
+  const hh=val('btH')?parseInt(val('btH')):null;
+  const mm=val('btM')?parseInt(val('btM')):null;
+  const profile={
+    nickname:val('nickname')||null,
+    name:val('name')||null,
+    birth_year:y,birth_month:m,birth_day:d,
+    birth_hour:hh,birth_minute:mm,
+    calendar_type:document.querySelector('input[name="calendar"]:checked').value,
+    gender:document.querySelector('input[name="gender"]:checked').value,
+    avatar:selectedAvatar
+  };
+  const{data,error}=await InyeonDB.saveProfile(profile);
+  btn.disabled=false;
+  if(error){
+    btn.textContent=currentProfile?'수정 저장':'저장하기';
+    showStatus('저장 실패: '+error.message,'err');
+  }else{
+    currentProfile=data;
+    showStatus('프로필이 저장되었습니다!','ok');
+    showView();
+  }
+}
+
+/* 삭제 */
+async function confirmDelete(){
+  if(!confirm('프로필을 삭제하시겠습니까? 히스토리는 유지됩니다.'))return;
+  await InyeonDB.deleteProfile();
+  currentProfile=null;
+  document.getElementById('viewMode').style.display='none';
+  document.getElementById('editMode').style.display='block';
+  document.getElementById('cancelWrap').style.display='none';
+  ['nickname','name','bdY','bdM','bdD','btH','btM'].forEach(id=>document.getElementById(id).value='');
+  showStatus('프로필이 삭제되었습니다.','ok');
+}
+
+loadProfile();
+</script>
+</body>
+</html>

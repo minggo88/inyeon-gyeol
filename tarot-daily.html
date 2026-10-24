@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인연결 · 오늘의 타로</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap');
+:root{--bg:#0a0a1a;--panel:#12102a;--panel2:#1a1640;--line:#2a2555;--text:#f0eeff;--muted:#9e97c0;--accent:#c9a84c;--accent2:#e8d48b;--warn:#e8a855;--glow:#c9a84c33;--shadow:0 20px 60px #00001088;--glass:rgba(25,20,60,0.65);--glass-border:rgba(200,168,76,0.15)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);background-image:radial-gradient(ellipse at 20% 0%,#1e1545 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,#15102e 0%,transparent 50%),radial-gradient(circle at 50% 50%,#0d0b20 0%,#0a0a1a 100%);color:var(--text);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,.15),transparent),radial-gradient(1px 1px at 30% 60%,rgba(255,255,255,.1),transparent),radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,.12),transparent),radial-gradient(1px 1px at 70% 40%,rgba(255,255,255,.08),transparent),radial-gradient(1px 1px at 90% 80%,rgba(255,255,255,.1),transparent),radial-gradient(1.5px 1.5px at 15% 75%,rgba(201,168,76,.2),transparent),radial-gradient(1.5px 1.5px at 85% 15%,rgba(201,168,76,.15),transparent);pointer-events:none;z-index:0}
+.app{max-width:640px;margin:auto;padding:40px 18px 70px;position:relative;z-index:1;text-align:center}
+.eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+h1{font-family:"Noto Serif KR",serif;font-size:clamp(28px,5vw,44px);line-height:1.12;margin:14px 0 8px;letter-spacing:-.04em;background:linear-gradient(135deg,#f0eeff 0%,#e8d48b 50%,#f0eeff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ── 날짜·인사 ── */
+.date-display{color:var(--muted);font-size:14px;margin-bottom:6px}
+.greeting{color:var(--accent2);font-size:16px;margin-bottom:32px;font-family:"Noto Serif KR",serif}
+
+/* ── 카드 영역 ── */
+.card-stage{perspective:1000px;margin:0 auto 32px;width:180px;height:280px;cursor:pointer}
+.card-stage.revealed{cursor:default}
+.card-inner{position:relative;width:100%;height:100%;transition:transform 1s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+.card-stage.revealed .card-inner{transform:rotateY(180deg)}
+.card-face{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:18px;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.card-back{background:linear-gradient(145deg,#1e1845,#140f30);border:2px solid rgba(201,168,76,.35);box-shadow:0 8px 40px rgba(0,0,0,.5),inset 0 0 40px rgba(201,168,76,.04)}
+.card-back-deco{font-size:42px;color:rgba(201,168,76,.2);text-shadow:0 0 30px rgba(201,168,76,.1);animation:pulse 3s ease-in-out infinite}
+.card-back-hint{color:var(--muted);font-size:12px;margin-top:12px;opacity:.7}
+@keyframes pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+.card-front{background:linear-gradient(145deg,rgba(201,168,76,.12),rgba(20,15,40,.95));border:2px solid rgba(201,168,76,.5);transform:rotateY(180deg);box-shadow:0 8px 40px rgba(201,168,76,.2),inset 0 0 40px rgba(201,168,76,.05);padding:16px;gap:4px}
+.card-front .card-emoji{font-size:64px}
+.card-front .card-name{font-family:"Noto Serif KR",serif;font-size:20px;font-weight:700;color:var(--accent2);margin-top:6px}
+.card-front .card-name-en{font-size:11px;color:var(--muted)}
+.card-front .card-num{font-size:10px;color:var(--muted);margin-top:4px}
+.card-stage:not(.revealed):hover .card-inner{transform:rotateY(12deg)}
+
+/* ── 결과 ── */
+.result{display:none;animation:fadeUp .8s ease}
+.result.show{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.result-panel{background:linear-gradient(160deg,rgba(22,18,50,0.85),rgba(14,12,30,0.9));border:1px solid rgba(201,168,76,.25);border-radius:24px;box-shadow:var(--shadow);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:32px 24px;text-align:left}
+
+.result-keywords{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;justify-content:center}
+.result-keywords span{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--accent2);padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600}
+
+.section-label{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.08em;margin-bottom:6px;margin-top:20px}
+.section-label:first-of-type{margin-top:0}
+.msg-text{font-size:15px;line-height:1.9;color:#d8d0f0}
+
+.advice-box{padding:16px 18px;border-radius:14px;background:rgba(77,168,112,.05);border:1px solid rgba(77,168,112,.12);font-size:15px;color:#c8f0d8;line-height:1.8;margin-top:12px}
+.advice-box strong{color:#8ee0a8;font-size:12px;letter-spacing:.05em}
+
+.lucky-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.lucky-item{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.12);border-radius:14px;padding:14px 10px;text-align:center}
+.lucky-item .lucky-icon{font-size:22px;margin-bottom:4px}
+.lucky-item .lucky-label{font-size:11px;color:var(--muted)}
+.lucky-item .lucky-value{font-size:14px;color:var(--accent2);font-weight:700;margin-top:2px}
+
+/* ── 스트릭 ── */
+.streak-bar{margin-top:24px;padding:14px 18px;border-radius:14px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.12);display:flex;align-items:center;gap:12px;justify-content:center}
+.streak-fire{font-size:22px}
+.streak-text{font-size:14px;color:var(--accent2);font-weight:600}
+.streak-sub{font-size:12px;color:var(--muted)}
+
+/* ── 버튼·링크 ── */
+.btn-row{margin-top:24px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:12px 24px;font-weight:700;cursor:pointer;transition:filter .2s,box-shadow .2s;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,#c9a84c,#a88530,#c9a84c);color:#0e0a18;box-shadow:0 4px 20px rgba(201,168,76,.25);text-shadow:0 1px 0 rgba(255,255,255,.2)}
+.btn-primary:hover{filter:brightness(1.12);box-shadow:0 6px 30px rgba(201,168,76,.35)}
+.btn-ghost{background:rgba(25,20,55,0.6);color:#d0c8f0;border:1px solid #3a3568}
+.btn-ghost:hover{border-color:var(--accent)}
+
+.share-row{margin-top:16px;text-align:center}
+.share-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:8px 16px;font-size:13px;cursor:pointer;transition:border-color .2s,color .2s}
+.share-btn:hover{border-color:var(--accent);color:var(--accent2)}
+
+.back-home{position:fixed;top:16px;left:16px;z-index:100;display:flex;align-items:center;gap:6px;background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--muted);text-decoration:none;padding:8px 14px;border-radius:99px;font-size:13px;font-weight:600;transition:border-color .2s,color .2s,background .2s}.back-home:hover{border-color:rgba(201,168,76,.4);color:var(--accent2);background:rgba(25,20,60,0.8)}.back-home svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.footer{color:#6a6290;font-size:12px;text-align:center;margin-top:30px;letter-spacing:.02em}
+
+@media(max-width:480px){
+  .card-stage{width:150px;height:235px}
+  .card-front .card-emoji{font-size:48px}
+  .card-front .card-name{font-size:17px}
+  .result-panel{padding:22px 16px}
+  .lucky-row{grid-template-columns:1fr 1fr 1fr;gap:8px}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<script>
+/* ── 인연결 Supabase Client ── */
+/* ⚠️ 아래 URL과 KEY를 본인의 Supabase 프로젝트 값으로 교체하세요 */
+const SUPABASE_URL='__SUPABASE_URL__';
+const SUPABASE_KEY='__SUPABASE_ANON_KEY__';
+
+const _sb=(SUPABASE_URL.startsWith('__'))?null:window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const InyeonDB={
+  _ready:!!_sb,
+  getDeviceId(){
+    let id=null;
+    try{id=localStorage.getItem('inyeon_device_id')}catch(e){}
+    if(!id){
+      id=crypto.randomUUID?crypto.randomUUID():
+        'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+          const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16)});
+      try{localStorage.setItem('inyeon_device_id',id)}catch(e){}
+    }
+    return id;
+  },
+
+  async getProfile(){
+    if(!_sb)return null;
+    const{data,error}=await _sb.from('profiles').select('*')
+      .eq('device_id',this.getDeviceId()).single();
+    if(error&&error.code!=='PGRST116')console.error('getProfile:',error);
+    return data;
+  },
+
+  async saveProfile(p){
+    if(!_sb)return{data:null,error:{message:'Supabase 미설정'}};
+    const{data,error}=await _sb.from('profiles')
+      .upsert({...p,device_id:this.getDeviceId(),updated_at:new Date().toISOString()},
+        {onConflict:'device_id'}).select().single();
+    if(error)console.error('saveProfile:',error);
+    return{data,error};
+  },
+
+  async deleteProfile(){
+    if(!_sb)return false;
+    const{error}=await _sb.from('profiles').delete()
+      .eq('device_id',this.getDeviceId());
+    return !error;
+  },
+
+  async saveHistory(entry){
+    if(!_sb)return{data:null,error:{message:'Supabase 미설정'}};
+    const{data,error}=await _sb.from('history')
+      .insert({...entry,device_id:this.getDeviceId()}).select().single();
+    if(error)console.error('saveHistory:',error);
+    return{data,error};
+  },
+
+  async getHistory(type,limit=50){
+    if(!_sb)return[];
+    let q=_sb.from('history').select('id,content_type,title,input_summary,created_at')
+      .eq('device_id',this.getDeviceId()).order('created_at',{ascending:false}).limit(limit);
+    if(type)q=q.eq('content_type',type);
+    const{data,error}=await q;
+    if(error)console.error('getHistory:',error);
+    return data||[];
+  },
+
+  async getHistoryDetail(id){
+    if(!_sb)return null;
+    const{data}=await _sb.from('history').select('*')
+      .eq('id',id).eq('device_id',this.getDeviceId()).single();
+    return data;
+  },
+
+  async deleteHistory(id){
+    if(!_sb)return false;
+    const{error}=await _sb.from('history').delete()
+      .eq('id',id).eq('device_id',this.getDeviceId());
+    return !error;
+  }
+};
+
+</script>
+</head>
+<body>
+<a href="saju-main.html" class="back-home"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>메인</a>
+<main class="app">
+  <div class="eyebrow">✦ INYEON GYEOL · 인연결</div>
+  <h1>오늘의 타로</h1>
+  <div class="date-display" id="date-display"></div>
+  <div class="greeting" id="greeting"></div>
+
+  <div class="card-stage" id="card-stage" onclick="revealCard()">
+    <div class="card-inner">
+      <div class="card-face card-back">
+        <div class="card-back-deco">✦</div>
+        <div class="card-back-hint">터치하여 오늘의 카드 확인</div>
+      </div>
+      <div class="card-face card-front">
+        <div class="card-emoji" id="c-emoji"></div>
+        <div class="card-name" id="c-name"></div>
+        <div class="card-name-en" id="c-name-en"></div>
+        <div class="card-num" id="c-num"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-panel">
+      <div class="result-keywords" id="res-keywords"></div>
+
+      <div class="section-label">✦ 오늘의 메시지</div>
+      <p class="msg-text" id="res-msg"></p>
+
+      <div class="advice-box">
+        <strong>✦ 오늘의 조언</strong><br>
+        <span id="res-advice"></span>
+      </div>
+
+      <div class="section-label">✦ 오늘의 행운</div>
+      <div class="lucky-row">
+        <div class="lucky-item">
+          <div class="lucky-icon" id="luck-el-icon"></div>
+          <div class="lucky-label">행운 오행</div>
+          <div class="lucky-value" id="luck-el"></div>
+        </div>
+        <div class="lucky-item">
+          <div class="lucky-icon" id="luck-color-icon"></div>
+          <div class="lucky-label">행운 색상</div>
+          <div class="lucky-value" id="luck-color"></div>
+        </div>
+        <div class="lucky-item">
+          <div class="lucky-icon" id="luck-num-icon"></div>
+          <div class="lucky-label">행운 숫자</div>
+          <div class="lucky-value" id="luck-num"></div>
+        </div>
+      </div>
+
+      <div id="streak-container"></div>
+
+      <div class="btn-row">
+        <a href="tarot-draw.html" class="btn btn-primary">🔮 카드 더 뽑기</a>
+        <a href="saju-main.html" class="btn btn-ghost">🏠 메인으로</a>
+      </div>
+
+      <div class="share-row">
+        <button class="share-btn" onclick="shareResult()">📋 결과 복사하기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cross-nav" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:30px;margin-bottom:16px"><a href="tarot-draw.html" style="display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:99px;border:1px solid #2a2555;background:rgba(25,20,60,0.65);backdrop-filter:blur(12px);color:#9e97c0;text-decoration:none;font-size:13px;font-weight:600;transition:border-color .2s,color .2s">🔮 타로 카드뽑기</a><a href="tarot-personal.html" style="display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:99px;border:1px solid #2a2555;background:rgba(25,20,60,0.65);backdrop-filter:blur(12px);color:#9e97c0;text-decoration:none;font-size:13px;font-weight:600;transition:border-color .2s,color .2s">🃏 나만의 타로</a><a href="saju-report.html" style="display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:99px;border:1px solid #2a2555;background:rgba(25,20,60,0.65);backdrop-filter:blur(12px);color:#9e97c0;text-decoration:none;font-size:13px;font-weight:600;transition:border-color .2s,color .2s">✦ 사주 리포트</a></div>
+<div class="footer">타로 해석은 오락과 자기성찰을 위한 참고 결과이며 의료·법률·투자 판단을 대신하지 않습니다.</div>
+</main>
+
+<script>
+/* ── 카드 데이터 ── */
+const CARDS=[
+  {id:0,  name:'The Fool',           nameKo:'바보',           emoji:'🃏', archetype:['자유','시작','모험'],
+   message:'오늘은 새로운 시작의 기운이 감돌아요. 어제까지의 걱정은 내려놓고, 가벼운 마음으로 첫 발을 내딛어 보세요.',
+   advice:'완벽한 준비보다 용기 있는 시작이 더 멀리 데려다줘요. 오늘 하나만 새롭게 시도해 보세요.',
+   element:'木',luckyColor:'민트',luckyNum:0},
+  {id:1,  name:'The Magician',       nameKo:'마법사',          emoji:'🎩', archetype:['의지','기술','실현'],
+   message:'당신 안에 필요한 모든 것이 이미 있어요. 오늘은 가진 자원을 활용해서 원하는 것을 만들어낼 수 있는 날이에요.',
+   advice:'머릿속 아이디어를 오늘 하나만 실행으로 옮겨 보세요. 생각보다 잘 될 거예요.',
+   element:'火',luckyColor:'레드',luckyNum:1},
+  {id:2,  name:'The High Priestess', nameKo:'여사제',          emoji:'🌙', archetype:['직관','지혜','내면'],
+   message:'오늘은 내면의 목소리에 집중할 때예요. 바쁜 일상에서 잠시 멈추면 놓치고 있던 신호가 들려올 거예요.',
+   advice:'중요한 결정이 있다면 논리보다 직감을 먼저 들어보세요. 조용한 시간 10분이 답을 줘요.',
+   element:'水',luckyColor:'네이비',luckyNum:2},
+  {id:3,  name:'The Empress',        nameKo:'여제',            emoji:'🌿', archetype:['풍요','돌봄','창조'],
+   message:'따뜻하고 풍요로운 에너지가 당신을 감싸고 있어요. 주변 사람들에게 건네는 작은 친절이 큰 행운으로 돌아올 날이에요.',
+   advice:'오늘은 좋아하는 음식, 좋아하는 사람과 함께하세요. 감각적인 즐거움이 에너지를 채워줘요.',
+   element:'木',luckyColor:'그린',luckyNum:3},
+  {id:4,  name:'The Emperor',        nameKo:'황제',            emoji:'👑', archetype:['권위','구조','리더십'],
+   message:'흔들리지 않는 중심이 필요한 날이에요. 계획을 세우고 체계적으로 움직이면 기대 이상의 성과가 나와요.',
+   advice:'오늘 해야 할 일의 우선순위를 정하고, 가장 중요한 한 가지에 집중하세요.',
+   element:'金',luckyColor:'골드',luckyNum:4},
+  {id:5,  name:'The Hierophant',     nameKo:'교황',            emoji:'📿', archetype:['전통','가르침','신뢰'],
+   message:'경험에서 오는 지혜가 빛나는 날이에요. 선배나 멘토의 조언, 혹은 검증된 방법을 따르면 좋은 결과가 와요.',
+   advice:'모르는 것은 물어보세요. 오늘은 배우는 자세가 가장 빠른 지름길이에요.',
+   element:'土',luckyColor:'브라운',luckyNum:5},
+  {id:6,  name:'The Lovers',         nameKo:'연인',            emoji:'💕', archetype:['선택','관계','조화'],
+   message:'관계와 선택의 에너지가 강한 날이에요. 마음이 끌리는 방향으로 가되, 그 선택에 책임도 함께 안아주세요.',
+   advice:'중요한 사람에게 마음을 표현해 보세요. 오늘 건넨 말 한마디가 관계를 바꿔요.',
+   element:'火',luckyColor:'핑크',luckyNum:6},
+  {id:7,  name:'The Chariot',        nameKo:'전차',            emoji:'🏇', archetype:['승리','의지','전진'],
+   message:'강한 추진력이 당신을 밀어주는 날이에요. 망설이지 말고 앞으로 나아가세요. 오늘의 행동이 내일의 결과를 만들어요.',
+   advice:'장애물이 보여도 돌아가지 말고 정면으로 부딪혀 보세요. 이길 수 있어요.',
+   element:'水',luckyColor:'실버',luckyNum:7},
+  {id:8,  name:'Strength',           nameKo:'힘',              emoji:'🦁', archetype:['용기','인내','내면의힘'],
+   message:'진짜 힘은 부드러움에서 나와요. 오늘은 화를 참거나 인내할 일이 생길 수 있지만, 그 순간이 당신을 더 강하게 만들어요.',
+   advice:'감정이 올라올 때 3초만 멈춰보세요. 그 여유가 상황을 완전히 바꿔놓을 거예요.',
+   element:'火',luckyColor:'오렌지',luckyNum:8},
+  {id:9,  name:'The Hermit',         nameKo:'은둔자',          emoji:'🏔️', archetype:['성찰','고독','지혜'],
+   message:'혼자만의 시간이 보석처럼 빛나는 날이에요. 사람들과 거리를 두는 것이 아니라, 자신과 가까워지는 시간이에요.',
+   advice:'오늘은 SNS를 잠시 내려놓고, 산책이나 독서로 내면을 충전해 보세요.',
+   element:'土',luckyColor:'그레이',luckyNum:9},
+  {id:10, name:'Wheel of Fortune',   nameKo:'운명의 수레바퀴', emoji:'🎡', archetype:['운명','전환','기회'],
+   message:'흐름이 바뀌는 전환점이에요. 좋든 나쁘든 지금의 상황은 변하게 되어 있어요. 변화의 물결에 올라타세요.',
+   advice:'예상 밖의 기회가 올 수 있어요. 평소 안 하던 것에 "좋아요"라고 대답해 보세요.',
+   element:'木',luckyColor:'퍼플',luckyNum:10},
+  {id:11, name:'Justice',            nameKo:'정의',            emoji:'⚖️', archetype:['공정','균형','진실'],
+   message:'인과의 법칙이 작동하는 날이에요. 정직하고 공정하게 행동하면 그만큼의 보상이 돌아오고, 속이면 그것도 돌아와요.',
+   advice:'오늘은 감정보다 사실을 기준으로 판단하세요. 공정한 태도가 신뢰를 쌓아요.',
+   element:'金',luckyColor:'화이트',luckyNum:11},
+  {id:12, name:'The Hanged Man',     nameKo:'매달린 사람',     emoji:'🙃', archetype:['희생','관점전환','기다림'],
+   message:'멈춰있는 것 같지만 사실 가장 깊이 성장하는 시간이에요. 관점을 180도 뒤집어 보면 새로운 길이 보여요.',
+   advice:'오늘 막히는 일이 있다면, 반대로 생각해 보세요. 포기가 아니라 전략적 기다림이에요.',
+   element:'水',luckyColor:'인디고',luckyNum:12},
+  {id:13, name:'Death',              nameKo:'죽음',            emoji:'🦋', archetype:['변화','끝과시작','탈피'],
+   message:'두렵게 느껴질 수 있지만, 이 카드는 완전한 변화와 새 출발을 의미해요. 낡은 것을 놓아야 새것이 와요.',
+   advice:'더 이상 필요 없는 습관, 관계, 물건을 하나 정리해 보세요. 공간이 비어야 새것이 채워져요.',
+   element:'水',luckyColor:'블랙',luckyNum:13},
+  {id:14, name:'Temperance',         nameKo:'절제',            emoji:'⚗️', archetype:['균형','인내','조화'],
+   message:'급하게 몰아치기보다 천천히 섞어가는 지혜가 필요한 날이에요. 균형과 조화가 최고의 결과를 만들어요.',
+   advice:'극단적인 선택 대신 중간 지점을 찾아보세요. "조금씩 꾸준히"가 오늘의 주문이에요.',
+   element:'火',luckyColor:'라벤더',luckyNum:14},
+  {id:15, name:'The Devil',          nameKo:'악마',            emoji:'😈', archetype:['집착','유혹','속박'],
+   message:'무의식적으로 매달리고 있는 것이 없는지 돌아볼 때예요. 진짜 원하는 것과 습관적으로 반복하는 것을 구분해 보세요.',
+   advice:'오늘 "해야 해서" 하는 일 중 하나를 과감히 안 해보세요. 생각보다 괜찮을 거예요.',
+   element:'土',luckyColor:'다크레드',luckyNum:15},
+  {id:16, name:'The Tower',          nameKo:'탑',              emoji:'⚡', archetype:['붕괴','해방','각성'],
+   message:'갑작스러운 변화가 올 수 있지만, 무너지는 것은 원래 약했던 부분이에요. 이 충격이 더 단단한 토대를 만들어줘요.',
+   advice:'예상 밖의 상황이 와도 당황하지 마세요. 진짜 중요한 것은 충격 뒤에도 남아있어요.',
+   element:'火',luckyColor:'크림슨',luckyNum:16},
+  {id:17, name:'The Star',           nameKo:'별',              emoji:'⭐', archetype:['희망','치유','영감'],
+   message:'가장 어두운 밤 뒤에 가장 밝은 별이 뜨듯, 힘든 시간을 지나온 당신에게 희망의 빛이 비추는 날이에요.',
+   advice:'오늘은 자신에게 너그러워지세요. 쉬어도 되고, 울어도 되고, 그냥 하늘을 올려다봐도 돼요.',
+   element:'水',luckyColor:'스카이블루',luckyNum:17},
+  {id:18, name:'The Moon',           nameKo:'달',              emoji:'🌕', archetype:['불안','환상','무의식'],
+   message:'안개 속을 걷는 느낌이 들 수 있어요. 보이는 것이 전부가 아닐 수 있으니, 확인하고 넘어가는 신중함이 필요해요.',
+   advice:'불안하면 사실을 확인하세요. 상상으로 키운 걱정의 80%는 실제로 일어나지 않아요.',
+   element:'水',luckyColor:'문스톤',luckyNum:18},
+  {id:19, name:'The Sun',            nameKo:'태양',            emoji:'☀️', archetype:['성공','활력','기쁨'],
+   message:'밝고 따뜻한 에너지가 가득한 날이에요! 자신감을 갖고 적극적으로 움직이면 좋은 일이 따라와요.',
+   advice:'오늘은 숨지 말고 드러내세요. 밝게 웃고, 먼저 인사하고, 당당하게 자기 의견을 말해 보세요.',
+   element:'火',luckyColor:'옐로',luckyNum:19},
+  {id:20, name:'Judgement',          nameKo:'심판',            emoji:'📯', archetype:['부활','각성','결산'],
+   message:'과거를 돌아보고 정리할 때예요. 미루어왔던 결정을 내리고, 새로운 단계로 올라설 준비가 되었어요.',
+   advice:'계속 미루던 일이 있다면 오늘 결정하세요. 완벽하지 않아도 괜찮아요, 결정 자체가 전진이에요.',
+   element:'金',luckyColor:'코퍼',luckyNum:20},
+  {id:21, name:'The World',          nameKo:'세계',            emoji:'🌍', archetype:['완성','통합','달성'],
+   message:'하나의 큰 순환이 마무리되는 기운이에요. 여기까지 온 자신을 축하해 주세요. 다음 여정이 곧 시작돼요.',
+   advice:'오늘은 성취를 음미하세요. 다음 목표를 세우기 전에, 지금까지 해낸 것을 인정하는 시간을 가져보세요.',
+   element:'土',luckyColor:'에메랄드',luckyNum:21}
+];
+
+const ELEMENTS={
+  '木':{icon:'🌿',color:'#88cc88'},
+  '火':{icon:'🔥',color:'#ee8866'},
+  '土':{icon:'🏔️',color:'#ccaa77'},
+  '金':{icon:'⚔️',color:'#ccccdd'},
+  '水':{icon:'💧',color:'#6699cc'}
+};
+const COLOR_ICONS={'민트':'🟢','레드':'🔴','네이비':'🔵','그린':'🟢','골드':'🟡','브라운':'🟤','핑크':'🩷','실버':'⚪','오렌지':'🟠','그레이':'⚪','퍼플':'🟣','화이트':'⚪','인디고':'🔵','블랙':'⚫','다크레드':'🔴','라벤더':'🟣','크림슨':'🔴','스카이블루':'🔵','문스톤':'⚪','옐로':'🟡','코퍼':'🟤','에메랄드':'🟢'};
+
+/* ── 날짜 기반 시드 → 결정적 카드 선택 ── */
+function dateToSeed(dateStr){
+  let h=0;
+  for(let i=0;i<dateStr.length;i++){h=((h<<5)-h+dateStr.charCodeAt(i))|0;}
+  return Math.abs(h);
+}
+
+function getTodayStr(){
+  const now=new Date();
+  const y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0'), d=String(now.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function getCardForDate(dateStr){
+  const seed=dateToSeed(dateStr+'inyeongyeol');
+  return CARDS[seed%22];
+}
+
+function getGreeting(){
+  const h=new Date().getHours();
+  if(h<6) return '고요한 새벽, 별이 당신에게 속삭여요';
+  if(h<12) return '좋은 아침이에요, 오늘 하루를 열어볼까요?';
+  if(h<18) return '오후의 햇살 속에서, 잠시 쉬어가세요';
+  return '하루를 마무리하며, 내일을 위한 메시지예요';
+}
+
+function formatDate(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const days=['일','월','화','수','목','금','토'];
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${days[d.getDay()]}요일`;
+}
+
+/* ── 스트릭 관리 ── */
+function getStreak(){
+  try{
+    const raw=localStorage.getItem('inyeon_daily_streak');
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){return null;}
+}
+function saveStreak(data){
+  try{localStorage.setItem('inyeon_daily_streak',JSON.stringify(data));}catch(e){}
+}
+function updateStreak(todayStr){
+  const prev=getStreak();
+  if(!prev) return saveStreak({lastDate:todayStr,count:1})||1;
+  if(prev.lastDate===todayStr) return prev.count;
+  // 어제 방문했으면 연속
+  const yesterday=new Date(todayStr+'T00:00:00');
+  yesterday.setDate(yesterday.getDate()-1);
+  const yStr=yesterday.toISOString().slice(0,10);
+  const count=(prev.lastDate===yStr)? prev.count+1 : 1;
+  saveStreak({lastDate:todayStr,count});
+  return count;
+}
+
+/* ── 화면 초기화 ── */
+const todayStr=getTodayStr();
+const todayCard=getCardForDate(todayStr);
+let revealed=false;
+
+document.getElementById('date-display').textContent=formatDate(todayStr);
+document.getElementById('greeting').textContent=getGreeting();
+
+// 카드 앞면 세팅
+document.getElementById('c-emoji').textContent=todayCard.emoji;
+document.getElementById('c-name').textContent=todayCard.nameKo;
+document.getElementById('c-name-en').textContent=todayCard.name;
+document.getElementById('c-num').textContent='Major Arcana #'+todayCard.id;
+
+// 이미 본 카드인지 확인
+try{
+  const seen=localStorage.getItem('inyeon_daily_seen');
+  if(seen===todayStr){
+    // 이미 봤으면 바로 표시
+    document.getElementById('card-stage').classList.add('revealed');
+    showResult(false);
+    revealed=true;
+  }
+}catch(e){}
+
+function revealCard(){
+  if(revealed) return;
+  revealed=true;
+  document.getElementById('card-stage').classList.add('revealed');
+  try{localStorage.setItem('inyeon_daily_seen',todayStr);}catch(e){}
+  setTimeout(()=>showResult(true),600);
+}
+
+function showResult(animate){
+  const el=document.getElementById('result');
+  // 키워드
+  document.getElementById('res-keywords').innerHTML=todayCard.archetype.map(a=>`<span>${a}</span>`).join('');
+  // 메시지·조언
+  document.getElementById('res-msg').textContent=todayCard.message;
+  document.getElementById('res-advice').textContent=todayCard.advice;
+  // 행운
+  const elData=ELEMENTS[todayCard.element];
+  document.getElementById('luck-el-icon').textContent=elData.icon;
+  document.getElementById('luck-el').textContent=todayCard.element;
+  document.getElementById('luck-color-icon').textContent=COLOR_ICONS[todayCard.luckyColor]||'🎨';
+  document.getElementById('luck-color').textContent=todayCard.luckyColor;
+  const luckyN=(dateToSeed(todayStr)%9)+1;
+  document.getElementById('luck-num-icon').textContent='🔢';
+  document.getElementById('luck-num').textContent=luckyN;
+  // 스트릭
+  const streak=updateStreak(todayStr);
+  if(streak>1){
+    document.getElementById('streak-container').innerHTML=`<div class="streak-bar"><span class="streak-fire">🔥</span><span class="streak-text">${streak}일 연속 방문!</span><span class="streak-sub">꾸준함이 운을 불러와요</span></div>`;
+  } else {
+    document.getElementById('streak-container').innerHTML=`<div class="streak-bar"><span class="streak-fire">✨</span><span class="streak-text">오늘이 시작이에요</span><span class="streak-sub">매일 방문하면 연속 기록이 쌓여요</span></div>`;
+  }
+
+  el.classList.add('show');
+  if(animate) el.scrollIntoView({behavior:'smooth',block:'start'});
+  if(animate&&typeof InyeonDB!=='undefined'&&InyeonDB._ready){InyeonDB.saveHistory({content_type:'tarot-daily',title:todayCard.nameKo+' · '+formatDate(todayStr),input_summary:todayCard.archetype.join(' · '),result_html:document.querySelector('.result-panel').innerHTML})}
+}
+
+function shareResult(){
+  const text=`✦ 오늘의 타로 — ${formatDate(todayStr)}\n\n${todayCard.emoji} ${todayCard.nameKo} (${todayCard.name})\n\n💬 ${todayCard.message}\n\n✦ 조언: ${todayCard.advice}\n\n🔮 인연결에서 확인하세요`;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn=document.querySelector('.share-btn');
+      btn.textContent='✅ 복사 완료!';
+      setTimeout(()=>{btn.textContent='📋 결과 복사하기';},2000);
+    });
+  }
+}
+</script>
+</body>
+</html>

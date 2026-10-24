@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인연결 · 타로 카드뽑기</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap');
+:root{--bg:#0a0a1a;--panel:#12102a;--panel2:#1a1640;--line:#2a2555;--text:#f0eeff;--muted:#9e97c0;--accent:#c9a84c;--accent2:#e8d48b;--warn:#e8a855;--glow:#c9a84c33;--shadow:0 20px 60px #00001088;--glass:rgba(25,20,60,0.65);--glass-border:rgba(200,168,76,0.15)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);background-image:radial-gradient(ellipse at 20% 0%,#1e1545 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,#15102e 0%,transparent 50%),radial-gradient(circle at 50% 50%,#0d0b20 0%,#0a0a1a 100%);color:var(--text);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,.15),transparent),radial-gradient(1px 1px at 30% 60%,rgba(255,255,255,.1),transparent),radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,.12),transparent),radial-gradient(1px 1px at 70% 40%,rgba(255,255,255,.08),transparent),radial-gradient(1px 1px at 90% 80%,rgba(255,255,255,.1),transparent),radial-gradient(1.5px 1.5px at 15% 75%,rgba(201,168,76,.2),transparent),radial-gradient(1.5px 1.5px at 85% 15%,rgba(201,168,76,.15),transparent);pointer-events:none;z-index:0}
+.app{max-width:900px;margin:auto;padding:40px 18px 70px;position:relative;z-index:1;text-align:center}
+.eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+h1{font-family:"Noto Serif KR",serif;font-size:clamp(28px,5vw,48px);line-height:1.12;margin:14px 0 12px;letter-spacing:-.04em;background:linear-gradient(135deg,#f0eeff 0%,#e8d48b 50%,#f0eeff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);max-width:520px;margin:0 auto 36px;font-size:15px;line-height:1.8}
+
+/* ── 페이즈 공통 ── */
+.phase{display:none;animation:fadeUp .5s ease}
+.phase.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── 대분류 그리드 ── */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;max-width:600px;margin:0 auto 30px}
+.cat-btn{background:linear-gradient(160deg,rgba(22,18,50,0.8),rgba(14,12,30,0.9));border:1.5px solid var(--line);border-radius:16px;padding:20px 10px 16px;cursor:pointer;transition:all .25s;text-align:center}
+.cat-btn:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 24px rgba(201,168,76,.12)}
+.cat-btn .cat-icon{font-size:32px;display:block;margin-bottom:8px}
+.cat-btn .cat-name{font-size:14px;font-weight:700;color:var(--accent2)}
+.cat-btn .cat-desc{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+
+/* ── 소분류 리스트 ── */
+.sub-header{margin-bottom:20px}
+.sub-header .back-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;margin-bottom:12px;transition:color .2s}
+.sub-header .back-btn:hover{color:var(--accent2)}
+.sub-header h2{font-family:"Noto Serif KR",serif;font-size:22px;color:var(--accent2);margin:0 0 6px}
+.sub-header p{color:var(--muted);font-size:13px;margin:0}
+.sub-list{max-width:500px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.sub-btn{background:linear-gradient(160deg,rgba(22,18,50,0.7),rgba(14,12,30,0.85));border:1.5px solid var(--line);border-radius:14px;padding:16px 20px;cursor:pointer;transition:all .25s;text-align:left;display:flex;justify-content:space-between;align-items:center}
+.sub-btn:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(201,168,76,.1)}
+.sub-btn .sub-name{font-size:15px;font-weight:700;color:var(--text)}
+.sub-btn .sub-desc{font-size:12px;color:var(--muted);margin-top:2px}
+.sub-btn .sub-count{flex:none;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.2);color:var(--accent2);padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap}
+
+/* ── 카드 그리드 ── */
+.draw-header{margin-bottom:20px}
+.draw-header .back-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;margin-bottom:8px;transition:color .2s}
+.draw-header .back-btn:hover{color:var(--accent2)}
+.badge{border:1px solid var(--glass-border);background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:10px 16px;border-radius:999px;color:var(--accent2);font-size:12px;font-weight:600;letter-spacing:.03em;display:inline-block;margin-bottom:12px}
+.spread{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-bottom:36px;perspective:1200px}
+.tcard{width:90px;height:140px;cursor:pointer;perspective:800px;transition:transform .3s}
+.tcard:hover:not(.flipped){transform:translateY(-6px)}
+.tcard.flipped{pointer-events:none}
+.tcard-inner{position:relative;width:100%;height:100%;transition:transform .7s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+.tcard.flipped .tcard-inner{transform:rotateY(180deg)}
+.tcard-face{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12px;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.tcard-back{background:linear-gradient(145deg,#1e1845,#140f30);border:1.5px solid rgba(201,168,76,.3);box-shadow:0 4px 20px rgba(0,0,0,.4),inset 0 0 30px rgba(201,168,76,.04)}
+.tcard-back::after{content:'✦';font-size:28px;color:rgba(201,168,76,.25);text-shadow:0 0 20px rgba(201,168,76,.15)}
+.tcard-front{background:linear-gradient(145deg,rgba(201,168,76,.12),rgba(20,15,40,.95));border:1.5px solid rgba(201,168,76,.4);transform:rotateY(180deg);box-shadow:0 4px 24px rgba(201,168,76,.15),inset 0 0 30px rgba(201,168,76,.05);padding:8px}
+.tcard-front .card-emoji{font-size:32px;margin-bottom:4px}
+.tcard-front .card-label{font-size:10px;color:var(--accent2);font-weight:700;text-align:center;line-height:1.2;font-family:"Noto Serif KR",serif}
+.tcard.chosen .tcard-front{border-color:rgba(201,168,76,.7);box-shadow:0 0 20px rgba(201,168,76,.3),0 4px 24px rgba(201,168,76,.15),inset 0 0 30px rgba(201,168,76,.05)}
+.tcard.dimmed{opacity:.35;pointer-events:none;transform:scale(.92)}
+.instruction{color:var(--muted);font-size:14px;margin-bottom:20px}
+.instruction strong{color:var(--accent2)}
+.draw-progress{display:flex;justify-content:center;gap:8px;margin-bottom:16px}
+.draw-progress .dot{width:10px;height:10px;border-radius:50%;background:var(--line);transition:background .3s}
+.draw-progress .dot.filled{background:var(--accent)}
+.draw-progress .dot.current{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+/* ── 결과 섹션 ── */
+.result-cards{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;margin-bottom:30px}
+.result-card{background:linear-gradient(160deg,rgba(22,18,50,0.85),rgba(14,12,30,0.9));border:1px solid rgba(201,168,76,.25);border-radius:20px;box-shadow:var(--shadow);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:24px 20px;text-align:left;width:100%;max-width:360px}
+.result-card .position-label{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.result-card .result-hero{display:flex;gap:16px;align-items:center;margin-bottom:14px}
+.result-visual{flex:none;width:80px;height:115px;border-radius:12px;background:linear-gradient(145deg,rgba(201,168,76,.15),rgba(201,168,76,.05));border:2px solid rgba(201,168,76,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 0 30px rgba(201,168,76,.05)}
+.result-emoji{font-size:32px;margin-bottom:4px}
+.result-name{font-family:"Noto Serif KR",serif;font-size:15px;font-weight:700;color:var(--accent2);text-align:center}
+.result-name-en{font-size:10px;color:var(--muted);text-align:center;margin-top:2px}
+.result-card .result-info h3{margin:0 0 6px;font-size:18px;color:var(--accent2);font-family:"Noto Serif KR",serif}
+.result-card .result-num{font-size:11px;color:var(--muted);margin-bottom:6px}
+.result-card .result-archetype{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0}
+.result-card .result-archetype span{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--accent2);padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600}
+.result-card .result-desc{font-size:14px;line-height:1.7;color:#d8d0f0;margin:0 0 12px}
+.result-card .result-advice{padding:12px 14px;border-radius:10px;background:rgba(77,168,112,.05);border:1px solid rgba(77,168,112,.12);font-size:13px;color:#c8f0d8;line-height:1.6}
+.result-card .result-advice strong{color:#8ee0a8;font-size:11px;letter-spacing:.05em}
+
+/* ── 종합 조언 (3장용) ── */
+.summary-panel{background:linear-gradient(160deg,rgba(22,18,50,0.85),rgba(14,12,30,0.9));border:1px solid rgba(201,168,76,.3);border-radius:20px;padding:24px;max-width:740px;margin:0 auto 20px;text-align:left}
+.summary-panel h3{font-family:"Noto Serif KR",serif;font-size:18px;color:var(--accent2);margin:0 0 10px}
+.summary-panel p{font-size:14px;color:#d8d0f0;line-height:1.8;margin:0}
+
+/* ── 버튼 ── */
+.btn-row{margin-top:24px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:12px 24px;font-weight:700;cursor:pointer;transition:filter .2s,box-shadow .2s;font-size:14px}
+.btn-primary{background:linear-gradient(135deg,#c9a84c,#a88530,#c9a84c);color:#0e0a18;box-shadow:0 4px 20px rgba(201,168,76,.25);text-shadow:0 1px 0 rgba(255,255,255,.2)}
+.btn-primary:hover{filter:brightness(1.12);box-shadow:0 6px 30px rgba(201,168,76,.35)}
+.btn-ghost{background:rgba(25,20,55,0.6);color:#d0c8f0;border:1px solid #3a3568}
+.btn-ghost:hover{border-color:var(--accent)}
+.home-link{display:inline-block;margin-top:20px;color:var(--muted);font-size:13px;text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s,color .2s}
+.home-link:hover{color:var(--accent2);border-color:var(--accent2)}
+.footer{color:#6a6290;font-size:12px;text-align:center;margin-top:30px;letter-spacing:.02em}
+
+@media(max-width:600px){
+  .cat-grid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px}
+  .cat-btn{padding:16px 8px 14px}
+  .cat-btn .cat-icon{font-size:26px}
+  .cat-btn .cat-name{font-size:13px}
+  .tcard{width:72px;height:112px}
+  .tcard-back::after{font-size:22px}
+  .tcard-front .card-emoji{font-size:24px}
+  .tcard-front .card-label{font-size:9px}
+  .result-card{padding:18px 16px}
+  .result-visual{width:68px;height:100px}
+  .result-emoji{font-size:26px}
+  .result-name{font-size:13px}
+  .result-cards{gap:14px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="eyebrow">✦ INYEON GYEOL · 인연결</div>
+  <h1>타로 카드뽑기</h1>
+
+  <!-- ====== Phase 1: 대분류 선택 ====== -->
+  <div class="phase active" id="phase-topic">
+    <p class="subtitle">어떤 이야기가 궁금하세요?<br>주제를 선택하면 맞는 카드를 준비해 드릴게요.</p>
+    <div class="cat-grid" id="cat-grid"></div>
+  </div>
+
+  <!-- ====== Phase 2: 소분류 선택 ====== -->
+  <div class="phase" id="phase-sub">
+    <div class="sub-header">
+      <button class="back-btn" onclick="goPhase('topic')">← 주제 다시 선택</button>
+      <h2 id="sub-title"></h2>
+      <p id="sub-desc"></p>
+    </div>
+    <div class="sub-list" id="sub-list"></div>
+  </div>
+
+  <!-- ====== Phase 3: 카드 뽑기 ====== -->
+  <div class="phase" id="phase-draw">
+    <div class="draw-header">
+      <button class="back-btn" onclick="goPhase('sub')">← 소분류 다시 선택</button>
+      <div class="badge" id="draw-badge"></div>
+    </div>
+    <div class="draw-progress" id="draw-progress"></div>
+    <p class="instruction" id="draw-instruction"></p>
+    <div class="spread" id="spread"></div>
+  </div>
+
+  <!-- ====== Phase 4: 결과 ====== -->
+  <div class="phase" id="phase-result">
+    <div class="sub-header" style="margin-bottom:24px">
+      <h2 id="result-title"></h2>
+      <p id="result-sub-desc"></p>
+    </div>
+    <div class="result-cards" id="result-cards"></div>
+    <div class="summary-panel" id="summary-panel" style="display:none">
+      <h3>✦ 종합 메시지</h3>
+      <p id="summary-text"></p>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="resetAll()">🔮 다른 주제 보기</button>
+      <button class="btn btn-ghost" onclick="retrySame()">🔄 같은 주제 다시 뽑기</button>
+      <a href="saju-main.html" class="btn btn-ghost">🏠 메인으로</a>
+    </div>
+  </div>
+
+  <div class="footer">타로 해석은 오락과 자기성찰을 위한 참고 결과이며 의료·법률·투자 판단을 대신하지 않습니다.</div>
+</main>
+
+<script>
+/* ================================================================
+   인연결 타로 SPA — 주제분류 + 멀티카드 스프레드
+   ================================================================ */
+
+/* ── 78장 카드 데이터 (인라인) ── */
+const MAJOR=[
+  {id:0,  name:'The Fool',           nameKo:'바보',           emoji:'🃏', archetype:['자유','시작','모험'],   description:'새로운 시작과 무한한 가능성을 상징해요', advice:'두려워하지 말고 첫 발을 내딛어 보세요', isMajor:true},
+  {id:1,  name:'The Magician',       nameKo:'마법사',          emoji:'🎩', archetype:['의지','기술','실현'],   description:'가진 능력을 최대한 발휘할 수 있는 때예요', advice:'지금 가진 걸로 시작하세요, 충분해요', isMajor:true},
+  {id:2,  name:'The High Priestess', nameKo:'여사제',          emoji:'🌙', archetype:['직관','지혜','내면'],   description:'내면의 목소리에 귀 기울일 때예요', advice:'조용한 시간이 가장 깊은 답을 줘요', isMajor:true},
+  {id:3,  name:'The Empress',        nameKo:'여제',            emoji:'🌿', archetype:['풍요','돌봄','창조'],   description:'풍요롭고 따뜻한 에너지가 흐르고 있어요', advice:'주변을 돌보는 만큼 나에게도 돌아와요', isMajor:true},
+  {id:4,  name:'The Emperor',        nameKo:'황제',            emoji:'👑', archetype:['권위','구조','리더십'], description:'체계를 잡고 이끌어가는 힘이 있어요', advice:'흔들리지 않는 원칙이 신뢰를 만들어요', isMajor:true},
+  {id:5,  name:'The Hierophant',     nameKo:'교황',            emoji:'📿', archetype:['전통','가르침','신뢰'], description:'배움과 전통에서 답을 찾을 수 있어요', advice:'경험 많은 사람의 조언에 귀 기울여 보세요', isMajor:true},
+  {id:6,  name:'The Lovers',         nameKo:'연인',            emoji:'💕', archetype:['선택','관계','조화'],   description:'중요한 선택과 관계의 에너지가 강해요', advice:'마음이 이끄는 방향을 믿어 보세요', isMajor:true},
+  {id:7,  name:'The Chariot',        nameKo:'전차',            emoji:'🏇', archetype:['승리','의지','전진'],   description:'강한 의지로 밀고 나갈 수 있는 때예요', advice:'방향을 정했으면 흔들리지 마세요', isMajor:true},
+  {id:8,  name:'Strength',           nameKo:'힘',              emoji:'🦁', archetype:['용기','인내','내면의힘'],description:'부드러운 힘이 거친 힘보다 오래가요', advice:'참을성이 가장 강한 무기예요', isMajor:true},
+  {id:9,  name:'The Hermit',         nameKo:'은둔자',          emoji:'🏔️', archetype:['성찰','고독','지혜'],   description:'혼자만의 시간이 깊은 깨달음을 줘요', advice:'바쁨에서 한 발 물러나 보세요', isMajor:true},
+  {id:10, name:'Wheel of Fortune',   nameKo:'운명의 수레바퀴', emoji:'🎡', archetype:['운명','전환','기회'],   description:'흐름이 바뀌는 전환점에 있어요', advice:'변화를 두려워하지 말고 올라타세요', isMajor:true},
+  {id:11, name:'Justice',            nameKo:'정의',            emoji:'⚖️', archetype:['공정','균형','진실'],   description:'공정하고 균형 잡힌 판단이 필요해요', advice:'감정보다 사실을 기준으로 결정하세요', isMajor:true},
+  {id:12, name:'The Hanged Man',     nameKo:'매달린 사람',     emoji:'🙃', archetype:['희생','관점전환','기다림'],description:'잠시 멈추면 보이지 않던 것이 보여요', advice:'포기가 아니라 다른 각도로 보는 거예요', isMajor:true},
+  {id:13, name:'Death',              nameKo:'죽음',            emoji:'🦋', archetype:['변화','끝과시작','탈피'],description:'끝이 아니라 새로운 시작의 문이에요', advice:'놓아야 할 것을 놓으면 새 공간이 열려요', isMajor:true},
+  {id:14, name:'Temperance',         nameKo:'절제',            emoji:'⚗️', archetype:['균형','인내','조화'],   description:'서두르지 않는 것이 가장 빠른 길이에요', advice:'조금씩, 꾸준히, 균형 있게 나아가세요', isMajor:true},
+  {id:15, name:'The Devil',          nameKo:'악마',            emoji:'😈', archetype:['집착','유혹','속박'],   description:'무엇에 묶여 있는지 직시할 때예요', advice:'진짜 원하는 것과 습관을 구분하세요', isMajor:true},
+  {id:16, name:'The Tower',          nameKo:'탑',              emoji:'⚡', archetype:['붕괴','해방','각성'],   description:'무너지는 것은 더 단단한 것을 세우기 위해서예요', advice:'충격 뒤에 진짜 중요한 것이 남아요', isMajor:true},
+  {id:17, name:'The Star',           nameKo:'별',              emoji:'⭐', archetype:['희망','치유','영감'],   description:'어둠 뒤에 찾아오는 희망의 빛이에요', advice:'지금은 쉬면서 자신을 돌봐도 돼요', isMajor:true},
+  {id:18, name:'The Moon',           nameKo:'달',              emoji:'🌕', archetype:['불안','환상','무의식'], description:'보이는 것이 전부가 아닐 수 있어요', advice:'불안할 때는 확인하고 넘어가세요', isMajor:true},
+  {id:19, name:'The Sun',            nameKo:'태양',            emoji:'☀️', archetype:['성공','활력','기쁨'],   description:'밝고 따뜻한 에너지가 가득해요', advice:'자신감을 가지세요, 지금이 빛날 때예요', isMajor:true},
+  {id:20, name:'Judgement',          nameKo:'심판',            emoji:'📯', archetype:['부활','각성','결산'],   description:'과거를 정리하고 새로운 단계로 올라서요', advice:'미루던 결정을 지금 내리세요', isMajor:true},
+  {id:21, name:'The World',          nameKo:'세계',            emoji:'🌍', archetype:['완성','통합','달성'],   description:'하나의 큰 사이클이 완성되는 때예요', advice:'여기까지 온 자신을 인정해 주세요', isMajor:true}
+];
+
+/* 마이너 아르카나 생성 */
+const SUIT_META={
+  wands:{nameKo:'완드',emoji:'🔥',theme:'열정·행동'},
+  cups:{nameKo:'컵',emoji:'💧',theme:'감정·관계'},
+  swords:{nameKo:'소드',emoji:'🌬️',theme:'사고·소통'},
+  pentacles:{nameKo:'펜타클',emoji:'⛰️',theme:'물질·노력'}
+};
+const NUM_NAMES=['에이스','2','3','4','5','6','7','8','9','10'];
+const COURT_NAMES=[{en:'Page',ko:'시종'},{en:'Knight',ko:'기사'},{en:'Queen',ko:'여왕'},{en:'King',ko:'왕'}];
+
+const MINOR_DESC={
+  wands:[
+    {d:'새로운 열정과 영감이 솟아오르는 순간이에요',a:'떠오르는 아이디어를 바로 행동으로 옮겨 보세요'},
+    {d:'넓은 세상을 바라보며 계획을 세울 때예요',a:'큰 그림을 그린 뒤 첫 걸음을 떼세요'},
+    {d:'시작한 일이 확장되고 넓어지는 때예요',a:'기다리되 준비는 멈추지 마세요'},
+    {d:'안정된 기반 위에서 축하할 일이 생겨요',a:'성과를 주변과 나누면 더 커져요'},
+    {d:'경쟁 속에서 실력이 드러나는 때예요',a:'갈등을 피하지 말고 정면으로 풀어 보세요'},
+    {d:'노력이 인정받고 주목받는 시기예요',a:'겸손하되 당당하게 받아들이세요'},
+    {d:'자신의 위치를 지켜야 할 때예요',a:'흔들리지 않는 기준이 힘이 돼요'},
+    {d:'일이 빠르게 진행되는 시기예요',a:'속도에 흔들리지 말고 방향을 확인하세요'},
+    {d:'끝까지 버텨야 결과를 볼 수 있어요',a:'지치더라도 조금만 더 버텨 보세요'},
+    {d:'무거운 짐을 내려놓을 때를 알아야 해요',a:'혼자 다 하려 하지 말고 나눠 보세요'},
+    {d:'호기심 가득한 탐험가의 에너지예요',a:'새로운 것에 과감히 도전해 보세요'},
+    {d:'열정적으로 돌진하는 모험가예요',a:'열정은 좋지만 방향도 챙기세요'},
+    {d:'자신감과 매력으로 주변을 밝혀요',a:'당당함이 곧 매력이에요'},
+    {d:'비전을 가진 리더의 에너지예요',a:'큰 그림을 보고 사람들을 이끄세요'}
+  ],
+  cups:[
+    {d:'새로운 감정과 관계의 시작이에요',a:'마음을 여는 것부터 시작하세요'},
+    {d:'서로 통하는 사람을 만나는 때예요',a:'진심을 표현하면 진심이 돌아와요'},
+    {d:'함께하는 기쁨이 큰 시기예요',a:'소중한 사람들과 시간을 보내세요'},
+    {d:'주어진 것에 감사하기 어려운 때예요',a:'눈앞의 것 말고 놓치고 있는 걸 봐 보세요'},
+    {d:'아쉬움이 있지만 남은 것에 집중할 때예요',a:'잃은 것보다 남은 것에 시선을 돌리세요'},
+    {d:'따뜻한 추억이 현재를 지탱해 줘요',a:'과거의 좋은 기억을 현재로 가져오세요'},
+    {d:'선택지가 많아 고민이 깊어지는 때예요',a:'현실적인 것부터 하나씩 확인하세요'},
+    {d:'익숙한 것을 떠나 새로운 길로 향해요',a:'떠나는 용기도 성장의 일부예요'},
+    {d:'원하던 것이 이루어지는 때예요',a:'감사하는 마음이 더 큰 행운을 불러요'},
+    {d:'가정과 관계에서 충만함을 느끼는 때예요',a:'소소한 일상 속 행복을 놓치지 마세요'},
+    {d:'감성적이고 직관이 뛰어나요',a:'느낌을 믿어 보세요, 맞을 확률이 높아요'},
+    {d:'로맨틱한 제안을 하거나 받는 때예요',a:'마음을 표현하는 용기를 내 보세요'},
+    {d:'깊은 공감 능력으로 주변을 위로해요',a:'다른 사람을 돌보면서 나도 돌보세요'},
+    {d:'감정을 다스리며 균형을 잡는 사람이에요',a:'머리와 마음 사이에서 균형을 찾으세요'}
+  ],
+  swords:[
+    {d:'진실이 드러나고 명확해지는 순간이에요',a:'흐릿한 것을 깨끗이 정리하세요'},
+    {d:'결정을 내리기 어려운 교착 상태예요',a:'감정을 빼고 사실만 놓고 보세요'},
+    {d:'마음이 아픈 일이 있을 수 있어요',a:'아픔을 인정해야 치유가 시작돼요'},
+    {d:'쉬면서 회복하는 시간이 필요해요',a:'충분히 쉬어야 다시 날카로워져요'},
+    {d:'갈등 속에서 진짜 중요한 걸 놓칠 수 있어요',a:'이기는 것보다 지키는 것이 더 중요해요'},
+    {d:'어려운 상황을 벗어나는 전환점이에요',a:'도움을 받아들이면 더 빨리 나아져요'},
+    {d:'신중한 전략이 필요한 때예요',a:'정면돌파보다 우회하는 지혜를 써 보세요'},
+    {d:'스스로 만든 한계에 갇혀 있을 수 있어요',a:'생각의 틀을 바꾸면 길이 보여요'},
+    {d:'걱정이 많아지는 시기이지만 대부분 기우예요',a:'최악을 대비하되 최선을 기대하세요'},
+    {d:'한 사이클이 완전히 끝나는 때예요',a:'끝을 받아들이면 새 시작이 열려요'},
+    {d:'빠른 두뇌와 호기심이 강해요',a:'궁금한 것은 직접 확인하세요'},
+    {d:'빠르고 과감한 행동파예요',a:'속도만큼 신중함도 챙기세요'},
+    {d:'독립적이고 명석한 판단력을 가졌어요',a:'차가운 것이 아니라 명확한 거예요'},
+    {d:'공정하고 권위 있는 판단을 내려요',a:'원칙을 지키되 유연함도 잊지 마세요'}
+  ],
+  pentacles:[
+    {d:'새로운 물질적 기회가 찾아오는 때예요',a:'실질적인 첫 걸음을 내딛으세요'},
+    {d:'여러 가지를 조율하며 균형을 잡는 때예요',a:'유연하게 대처하면 다 해낼 수 있어요'},
+    {d:'팀워크로 좋은 결과를 만드는 시기예요',a:'전문성을 발휘하고 협력하세요'},
+    {d:'가진 것을 단단히 지키려는 때예요',a:'너무 꽉 잡으면 기회도 놓칠 수 있어요'},
+    {d:'물질적으로 어려운 시기일 수 있어요',a:'도움을 구하는 것은 약함이 아니에요'},
+    {d:'나누고 베풀 수 있는 여유가 있어요',a:'받는 것보다 주는 것이 더 많이 돌아와요'},
+    {d:'꾸준한 노력의 결실을 기다리는 때예요',a:'조급해하지 말고 꾸준히 가꾸세요'},
+    {d:'실력을 갈고닦는 장인의 시기예요',a:'반복과 집중이 진짜 실력을 만들어요'},
+    {d:'노력의 결실로 풍요로운 때예요',a:'혼자 즐기는 것도 좋지만 나눠 보세요'},
+    {d:'대를 이어 남길 수 있는 것을 생각할 때예요',a:'장기적인 안목으로 결정하세요'},
+    {d:'성실하게 배우는 학생의 에너지예요',a:'기초부터 차근차근 쌓아 가세요'},
+    {d:'꾸준하고 묵묵한 실행력이 강점이에요',a:'속도보다 방향이 중요해요'},
+    {d:'풍요롭고 실용적인 돌봄의 에너지예요',a:'실질적인 도움이 가장 큰 사랑이에요'},
+    {d:'물질적 성공과 안정을 이뤄요',a:'성공 뒤에도 초심을 잃지 마세요'}
+  ]
+};
+
+function buildMinorCards(){
+  const cards=[];
+  let id=22;
+  for(const suit of ['wands','cups','swords','pentacles']){
+    const sm=SUIT_META[suit];
+    const descs=MINOR_DESC[suit];
+    for(let i=0;i<10;i++){
+      cards.push({id:id++,name:`${NUM_NAMES[i]==='에이스'?'Ace':NUM_NAMES[i]} of ${suit.charAt(0).toUpperCase()+suit.slice(1)}`,nameKo:`${sm.nameKo} ${NUM_NAMES[i]}`,emoji:sm.emoji,archetype:[],description:descs[i].d,advice:descs[i].a,isMajor:false,suit});
+    }
+    for(let j=0;j<4;j++){
+      cards.push({id:id++,name:`${COURT_NAMES[j].en} of ${suit.charAt(0).toUpperCase()+suit.slice(1)}`,nameKo:`${sm.nameKo} ${COURT_NAMES[j].ko}`,emoji:sm.emoji,archetype:[],description:descs[10+j].d,advice:descs[10+j].a,isMajor:false,suit});
+    }
+  }
+  return cards;
+}
+const MINOR=buildMinorCards();
+const ALL_CARDS=MAJOR.concat(MINOR);
+
+/* ── 주제 분류 데이터 ── */
+const TOPICS=[
+  {id:'today', name:'오늘의 타로', icon:'🌅', desc:'가볍게 오늘의 메시지를 받아보세요', pool:'major', subs:[
+    {id:'daily',   name:'오늘의 한마디',  desc:'하루를 시작하는 메시지',             count:1, positions:['핵심 메시지']},
+    {id:'week',    name:'이번 주 흐름',   desc:'이번 주 에너지와 방향',             count:3, positions:['주 초반','주 중반','주 후반']},
+    {id:'month',   name:'이달의 흐름',    desc:'이번 달 전반적 기운',               count:3, positions:['월 초','월 중','월 말']},
+  ]},
+  {id:'love', name:'연애·관계', icon:'💕', desc:'관계와 감정에 대한 메시지', pool:'major+cups', subs:[
+    {id:'mind',    name:'상대의 속마음',  desc:'지금 그 사람이 나를 어떻게 생각하는지', count:3, positions:['겉으로 보이는 마음','숨겨진 감정','앞으로의 태도']},
+    {id:'flow',    name:'우리 관계 흐름', desc:'현재 관계의 과거·현재·미래',          count:3, positions:['과거','현재','미래']},
+    {id:'match',   name:'이 사람과의 궁합',desc:'두 사람의 에너지가 맞는지',          count:3, positions:['나의 에너지','상대의 에너지','관계의 에너지']},
+    {id:'confess', name:'고백하면 어떻게 될까',desc:'마음을 표현했을 때 흐름',        count:3, positions:['지금 상황','고백 후 반응','결과 방향']},
+    {id:'contact', name:'연락해도 될까',  desc:'먼저 연락했을 때의 방향',             count:1, positions:['핵심 조언']},
+  ]},
+  {id:'breakup', name:'이별·재회', icon:'🥀', desc:'이별과 관계 정리에 대한 메시지', pool:'major+cups', subs:[
+    {id:'heal',    name:'이별 후 마음 정리',desc:'지금 내 감정 상태와 방향',          count:3, positions:['현재 내 마음','놓아야 할 것','나아갈 방향']},
+    {id:'reunion', name:'재회 가능성',     desc:'다시 이어질 수 있는 흐름',           count:3, positions:['남은 감정','현재 거리','방향']},
+    {id:'letgo',   name:'놓아줘야 할까',   desc:'이 관계를 정리할 타이밍인지',         count:3, positions:['붙잡는 이유','놓아야 할 이유','조언']},
+  ]},
+  {id:'career', name:'일·진로', icon:'💼', desc:'직업과 진로에 대한 방향', pool:'major+pentacles', subs:[
+    {id:'change',  name:'이직·전직 방향', desc:'옮기는 게 나은지, 지금 자리를 지킬지', count:3, positions:['현재 직장 에너지','이직 시 에너지','조언']},
+    {id:'work',    name:'현재 업무 흐름', desc:'지금 하는 일의 에너지와 방향',         count:3, positions:['현재 상황','장애물','방향']},
+    {id:'biz',     name:'사업·프로젝트 전망',desc:'새로 시작하는 일의 흐름',           count:3, positions:['시작 에너지','진행 과정','결과 방향']},
+    {id:'job',     name:'취업·면접',       desc:'준비 상태와 결과 방향',               count:3, positions:['준비 상태','면접 에너지','결과']},
+  ]},
+  {id:'money', name:'재물·금전', icon:'💰', desc:'돈과 재물 흐름에 대한 조언', pool:'major+pentacles', subs:[
+    {id:'wealth',  name:'재물 흐름',      desc:'현재 금전 에너지와 방향',             count:3, positions:['현재 재물 상태','흐름 방향','조언']},
+    {id:'spend',   name:'소비 습관 점검', desc:'돈 관리 태도에 대한 조언',             count:1, positions:['핵심 조언']},
+  ]},
+  {id:'study', name:'학업·성장', icon:'📚', desc:'공부와 자기계발 방향', pool:'major+swords', subs:[
+    {id:'exam',    name:'시험·합격 방향', desc:'준비 상태와 결과 흐름',               count:3, positions:['준비 상태','시험 에너지','결과 방향']},
+    {id:'method',  name:'공부 방법 조언', desc:'집중력과 학습 방향',                   count:1, positions:['핵심 조언']},
+    {id:'growth',  name:'자기계발 방향',  desc:'성장을 위해 필요한 것',               count:3, positions:['현재 수준','필요한 것','성장 방향']},
+  ]},
+  {id:'choice', name:'선택·결정', icon:'🔮', desc:'결정이 어려울 때 방향 제시', pool:'major', subs:[
+    {id:'yesno',   name:'예/아니오',      desc:'하나의 질문에 방향 제시',             count:1, positions:['답']},
+    {id:'ab',      name:'A vs B 선택',    desc:'두 갈래 중 어느 쪽이 나은지',         count:3, positions:['A 방향의 에너지','B 방향의 에너지','종합 조언']},
+  ]},
+];
+
+/* ── 상태 관리 ── */
+const STATE={
+  phase:'topic',   // topic | sub | draw | result
+  category:null,
+  subTopic:null,
+  pool:[],
+  shuffled:[],
+  drawn:[],
+  drawIdx:0,
+};
+
+/* ── 카드풀 빌더 ── */
+function buildPool(poolType){
+  if(poolType==='major') return [...MAJOR];
+  const parts=poolType.split('+');
+  let pool=[...MAJOR];
+  if(parts.includes('cups'))      pool=pool.concat(MINOR.filter(c=>c.suit==='cups'));
+  if(parts.includes('swords'))    pool=pool.concat(MINOR.filter(c=>c.suit==='swords'));
+  if(parts.includes('pentacles')) pool=pool.concat(MINOR.filter(c=>c.suit==='pentacles'));
+  if(parts.includes('wands'))     pool=pool.concat(MINOR.filter(c=>c.suit==='wands'));
+  return pool;
+}
+
+/* ── 셔플 (Fisher–Yates) ── */
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+/* ── 페이즈 전환 ── */
+function goPhase(p){
+  document.querySelectorAll('.phase').forEach(el=>el.classList.remove('active'));
+  document.getElementById('phase-'+p).classList.add('active');
+  STATE.phase=p;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── Phase 1: 대분류 렌더 ── */
+function renderTopics(){
+  const grid=document.getElementById('cat-grid');
+  grid.innerHTML='';
+  TOPICS.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='cat-btn';
+    div.innerHTML=`<span class="cat-icon">${t.icon}</span><div class="cat-name">${t.name}</div><div class="cat-desc">${t.desc}</div>`;
+    div.addEventListener('click',()=>selectCategory(t));
+    grid.appendChild(div);
+  });
+}
+
+/* ── Phase 2: 소분류 렌더 ── */
+function selectCategory(cat){
+  STATE.category=cat;
+  document.getElementById('sub-title').textContent=cat.icon+' '+cat.name;
+  document.getElementById('sub-desc').textContent=cat.desc;
+
+  const list=document.getElementById('sub-list');
+  list.innerHTML='';
+  cat.subs.forEach(s=>{
+    const div=document.createElement('div');
+    div.className='sub-btn';
+    div.innerHTML=`<div><div class="sub-name">${s.name}</div><div class="sub-desc">${s.desc}</div></div><span class="sub-count">${s.count}장</span>`;
+    div.addEventListener('click',()=>selectSub(s));
+    list.appendChild(div);
+  });
+  goPhase('sub');
+}
+
+/* ── Phase 3: 카드 뽑기 ── */
+function selectSub(sub){
+  STATE.subTopic=sub;
+  STATE.pool=buildPool(STATE.category.pool);
+  STATE.shuffled=shuffle(STATE.pool);
+  STATE.drawn=[];
+  STATE.drawIdx=0;
+
+  // 뱃지
+  const poolLabel=STATE.category.pool==='major'?'메이저 22장':`메이저 22장 + ${STATE.category.pool.split('+')[1]==='cups'?'컵':STATE.category.pool.split('+')[1]==='swords'?'소드':'펜타클'} 14장`;
+  document.getElementById('draw-badge').textContent='✧ '+poolLabel;
+
+  // 진행 dots
+  renderProgress();
+
+  // 안내
+  updateInstruction();
+
+  // 카드 배열
+  renderSpread();
+
+  goPhase('draw');
+}
+
+function renderProgress(){
+  const el=document.getElementById('draw-progress');
+  if(STATE.subTopic.count<=1){el.innerHTML='';return;}
+  let html='';
+  for(let i=0;i<STATE.subTopic.count;i++){
+    const cls=i<STATE.drawIdx?'dot filled':i===STATE.drawIdx?'dot current':'dot';
+    html+=`<div class="${cls}" title="${STATE.subTopic.positions[i]}"></div>`;
+  }
+  el.innerHTML=html;
+}
+
+function updateInstruction(){
+  const remaining=STATE.subTopic.count-STATE.drawIdx;
+  const pos=STATE.subTopic.positions[STATE.drawIdx];
+  if(STATE.subTopic.count===1){
+    document.getElementById('draw-instruction').innerHTML=`🔮 마음을 가다듬고 끌리는 카드 <strong>하나</strong>를 선택하세요`;
+  } else {
+    document.getElementById('draw-instruction').innerHTML=`🔮 <strong>${STATE.drawIdx+1}번째 카드</strong>를 선택하세요 — <em style="color:var(--accent2)">${pos}</em>`;
+  }
+}
+
+function renderSpread(){
+  const el=document.getElementById('spread');
+  el.innerHTML='';
+  STATE.shuffled.forEach((c,i)=>{
+    const div=document.createElement('div');
+    div.className='tcard';
+    div.dataset.idx=i;
+    div.innerHTML=`<div class="tcard-inner"><div class="tcard-face tcard-back"></div><div class="tcard-face tcard-front"><div class="card-emoji">${c.emoji}</div><div class="card-label">${c.nameKo}</div></div></div>`;
+    div.addEventListener('click',()=>pickCard(i));
+    el.appendChild(div);
+  });
+}
+
+function pickCard(idx){
+  const card=STATE.shuffled[idx];
+  // 이미 뽑은 카드 무시
+  if(STATE.drawn.find(d=>d.card.id===card.id)) return;
+
+  STATE.drawn.push({card, position:STATE.subTopic.positions[STATE.drawIdx]});
+  STATE.drawIdx++;
+
+  // 카드 flip
+  const cards=document.querySelectorAll('.tcard');
+  cards[idx].classList.add('flipped','chosen');
+
+  // 진행 업데이트
+  renderProgress();
+
+  // 뽑기 완료?
+  if(STATE.drawIdx>=STATE.subTopic.count){
+    // 다 뽑았으면 나머지 dimmed + 결과 이동
+    setTimeout(()=>{
+      cards.forEach((el,i)=>{
+        if(!el.classList.contains('chosen')) el.classList.add('dimmed');
+      });
+    },300);
+    setTimeout(()=>showResults(),1200);
+  } else {
+    // 다음 카드 안내
+    setTimeout(()=>{
+      updateInstruction();
+      // 뽑은 카드 dim (하지만 보이도록)
+      cards[idx].style.opacity='0.5';
+      cards[idx].style.pointerEvents='none';
+    },800);
+  }
+}
+
+/* ── Phase 4: 결과 표시 ── */
+function showResults(){
+  document.getElementById('result-title').textContent=STATE.category.icon+' '+STATE.subTopic.name;
+  document.getElementById('result-sub-desc').textContent=STATE.subTopic.desc;
+
+  const container=document.getElementById('result-cards');
+  container.innerHTML='';
+
+  STATE.drawn.forEach(({card, position},i)=>{
+    const div=document.createElement('div');
+    div.className='result-card';
+    div.style.animationDelay=i*0.15+'s';
+    div.innerHTML=`
+      <div class="position-label">✦ ${position}</div>
+      <div class="result-hero">
+        <div class="result-visual">
+          <div class="result-emoji">${card.emoji}</div>
+          <div class="result-name">${card.nameKo}</div>
+          <div class="result-name-en">${card.name}</div>
+        </div>
+        <div class="result-info">
+          <div class="result-num">${card.isMajor?'메이저 아르카나 #'+card.id:card.name}</div>
+          <h3>${card.emoji} ${card.nameKo}</h3>
+          ${card.archetype&&card.archetype.length?`<div class="result-archetype">${card.archetype.map(a=>`<span>${a}</span>`).join('')}</div>`:''}
+        </div>
+      </div>
+      <p class="result-desc">${card.description}</p>
+      <div class="result-advice">
+        <strong>✦ ${position}에서의 조언</strong><br>
+        ${card.advice}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  // 3장 이상이면 종합 메시지
+  const summary=document.getElementById('summary-panel');
+  if(STATE.drawn.length>=3){
+    summary.style.display='';
+    document.getElementById('summary-text').textContent=buildSummary();
+  } else {
+    summary.style.display='none';
+  }
+
+  goPhase('result');
+}
+
+/* 종합 메시지 생성 (간단 조합) */
+function buildSummary(){
+  const cards=STATE.drawn.map(d=>d.card);
+  const majorCount=cards.filter(c=>c.isMajor).length;
+
+  let msg='';
+  if(majorCount===cards.length){
+    msg='모든 카드가 메이저 아르카나로 나왔어요. 지금 이 질문은 당신의 인생에서 큰 의미를 가지는 흐름 속에 있어요. ';
+  } else if(majorCount>=2){
+    msg='메이저 카드가 다수 등장했어요. 중요한 전환점에 가까이 있다는 신호예요. ';
+  }
+
+  // 첫 카드 → 시작, 마지막 카드 → 결론
+  msg+=`시작점에서 '${cards[0].nameKo}'의 에너지가 흐르고, `;
+  if(cards.length===3){
+    msg+=`중심에는 '${cards[1].nameKo}'가 자리하며, `;
+  }
+  msg+=`결론으로 '${cards[cards.length-1].nameKo}'가 방향을 알려주고 있어요. `;
+  msg+=cards[cards.length-1].advice;
+
+  return msg;
+}
+
+/* ── 리셋 ── */
+function resetAll(){
+  STATE.category=null;
+  STATE.subTopic=null;
+  STATE.pool=[];
+  STATE.drawn=[];
+  STATE.drawIdx=0;
+  goPhase('topic');
+}
+
+function retrySame(){
+  if(!STATE.subTopic) return resetAll();
+  selectSub(STATE.subTopic);
+}
+
+/* ── 초기화 ── */
+renderTopics();
+</script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인연결 · 히스토리</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap');
+:root{--bg:#0a0a1a;--panel:#12102a;--panel2:#1a1640;--line:#2a2555;--text:#f0eeff;--muted:#9e97c0;--accent:#c9a84c;--accent2:#e8d48b;--warn:#e8a855;--glow:#c9a84c33;--shadow:0 20px 60px #00001088;--glass:rgba(25,20,60,0.65);--glass-border:rgba(200,168,76,0.15);--danger:#f87171}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);background-image:radial-gradient(ellipse at 20% 0%,#1e1545 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,#15102e 0%,transparent 50%);color:var(--text);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,.15),transparent),radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,.12),transparent),radial-gradient(1.5px 1.5px at 85% 15%,rgba(201,168,76,.15),transparent);pointer-events:none;z-index:0}
+.back-home{position:fixed;top:16px;left:16px;z-index:100;display:flex;align-items:center;gap:6px;background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--muted);text-decoration:none;padding:8px 14px;border-radius:99px;font-size:13px;font-weight:600;transition:border-color .2s,color .2s,background .2s}.back-home:hover{border-color:rgba(201,168,76,.4);color:var(--accent2);background:rgba(25,20,60,0.8)}.back-home svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.app{max-width:640px;margin:auto;padding:80px 18px 60px;position:relative;z-index:1}
+.page-title{font-family:"Noto Serif KR",serif;font-size:28px;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,#f0eeff,#e8d48b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.page-sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:24px}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:24px}
+.filter-btn{padding:8px 16px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.filter-btn:hover{border-color:rgba(201,168,76,.3);color:var(--text)}
+.filter-btn.active{border-color:var(--accent);background:rgba(201,168,76,.1);color:var(--accent2)}
+.history-list{display:flex;flex-direction:column;gap:12px}
+.h-item{background:linear-gradient(160deg,rgba(22,18,50,0.85),rgba(14,12,30,0.9));border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:border-color .2s}
+.h-item:hover{border-color:rgba(201,168,76,.25)}
+.h-header{display:flex;align-items:center;gap:12px;padding:16px 18px;cursor:pointer}
+.h-icon{font-size:28px;flex-shrink:0}
+.h-info{flex:1;min-width:0}
+.h-title{font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.h-actions{display:flex;gap:8px;flex-shrink:0}
+.h-btn{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all .2s}
+.h-btn:hover{border-color:rgba(201,168,76,.3);color:var(--accent2)}
+.h-btn.del:hover{border-color:var(--danger);color:var(--danger)}
+.h-detail{display:none;padding:0 18px 18px;border-top:1px solid var(--line)}
+.h-detail.open{display:block}
+.h-result{margin-top:14px;background:rgba(10,8,20,0.5);border-radius:12px;padding:16px;font-size:14px;line-height:1.8;max-height:400px;overflow-y:auto}
+.h-result::-webkit-scrollbar{width:6px}.h-result::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state .icon{font-size:48px;margin-bottom:16px}
+.empty-state p{font-size:15px;margin-bottom:8px}
+.empty-state a{color:var(--accent2);text-decoration:none}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+.footer{color:#6a6290;font-size:12px;text-align:center;margin-top:32px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<script>
+/* ── 인연결 Supabase Client ── */
+/* ⚠️ 아래 URL과 KEY를 본인의 Supabase 프로젝트 값으로 교체하세요 */
+const SUPABASE_URL='__SUPABASE_URL__';
+const SUPABASE_KEY='__SUPABASE_ANON_KEY__';
+
+const _sb=(SUPABASE_URL.startsWith('__'))?null:window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const InyeonDB={
+  _ready:!!_sb,
+  getDeviceId(){
+    let id=null;
+    try{id=localStorage.getItem('inyeon_device_id')}catch(e){}
+    if(!id){
+      id=crypto.randomUUID?crypto.randomUUID():
+        'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+          const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16)});
+      try{localStorage.setItem('inyeon_device_id',id)}catch(e){}
+    }
+    return id;
+  },
+
+  async getProfile(){
+    if(!_sb)return null;
+    const{data,error}=await _sb.from('profiles').select('*')
+      .eq('device_id',this.getDeviceId()).single();
+    if(error&&error.code!=='PGRST116')console.error('getProfile:',error);
+    return data;
+  },
+
+  async saveProfile(p){
+    if(!_sb)return{data:null,error:{message:'Supabase 미설정'}};
+    const{data,error}=await _sb.from('profiles')
+      .upsert({...p,device_id:this.getDeviceId(),updated_at:new Date().toISOString()},
+        {onConflict:'device_id'}).select().single();
+    if(error)console.error('saveProfile:',error);
+    return{data,error};
+  },
+
+  async deleteProfile(){
+    if(!_sb)return false;
+    const{error}=await _sb.from('profiles').delete()
+      .eq('device_id',this.getDeviceId());
+    return !error;
+  },
+
+  async saveHistory(entry){
+    if(!_sb)return{data:null,error:{message:'Supabase 미설정'}};
+    const{data,error}=await _sb.from('history')
+      .insert({...entry,device_id:this.getDeviceId()}).select().single();
+    if(error)console.error('saveHistory:',error);
+    return{data,error};
+  },
+
+  async getHistory(type,limit=50){
+    if(!_sb)return[];
+    let q=_sb.from('history').select('id,content_type,title,input_summary,created_at')
+      .eq('device_id',this.getDeviceId()).order('created_at',{ascending:false}).limit(limit);
+    if(type)q=q.eq('content_type',type);
+    const{data,error}=await q;
+    if(error)console.error('getHistory:',error);
+    return data||[];
+  },
+
+  async getHistoryDetail(id){
+    if(!_sb)return null;
+    const{data}=await _sb.from('history').select('*')
+      .eq('id',id).eq('device_id',this.getDeviceId()).single();
+    return data;
+  },
+
+  async deleteHistory(id){
+    if(!_sb)return false;
+    const{error}=await _sb.from('history').delete()
+      .eq('id',id).eq('device_id',this.getDeviceId());
+    return !error;
+  }
+};
+
+</script>
+</head>
+<body>
+<a href="saju-main.html" class="back-home"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>메인</a>
+<main class="app">
+  <h1 class="page-title">히스토리</h1>
+  <p class="page-sub">지금까지의 사주·타로 기록을 다시 볼 수 있어요</p>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" data-type="">전체</button>
+    <button class="filter-btn" data-type="saju">✦ 사주</button>
+    <button class="filter-btn" data-type="tarot-personal">🃏 나만의타로</button>
+    <button class="filter-btn" data-type="tarot-draw">🔮 카드뽑기</button>
+    <button class="filter-btn" data-type="tarot-daily">☀️ 데일리</button>
+  </div>
+
+  <div id="loadingState" class="loading">기록 불러오는 중...</div>
+  <div id="historyList" class="history-list"></div>
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div class="icon">📜</div>
+    <p>아직 기록이 없어요</p>
+    <p><a href="saju-main.html">컨텐츠 보러 가기 →</a></p>
+  </div>
+
+  <div class="cross-nav" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:30px;margin-bottom:16px"><a href="saju-report.html" style="display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:99px;border:1px solid #2a2555;background:rgba(25,20,60,0.65);backdrop-filter:blur(12px);color:#9e97c0;text-decoration:none;font-size:13px;font-weight:600;transition:border-color .2s,color .2s">✦ 사주 리포트</a><a href="tarot-draw.html" style="display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:99px;border:1px solid #2a2555;background:rgba(25,20,60,0.65);backdrop-filter:blur(12px);color:#9e97c0;text-decoration:none;font-size:13px;font-weight:600;transition:border-color .2s,color .2s">🔮 타로 카드뽑기</a><a href="tarot-daily.html" style="display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:99px;border:1px solid #2a2555;background:rgba(25,20,60,0.65);backdrop-filter:blur(12px);color:#9e97c0;text-decoration:none;font-size:13px;font-weight:600;transition:border-color .2s,color .2s">☀️ 오늘의 타로</a></div>
+<div class="footer">기록은 이 기기에 연결된 계정 기준으로 저장됩니다.</div>
+</main>
+
+<script>
+const TYPE_META={
+  saju:{icon:'✦',label:'사주 리포트'},
+  'tarot-personal':{icon:'🃏',label:'나만의 타로'},
+  'tarot-draw':{icon:'🔮',label:'타로 카드뽑기'},
+  'tarot-daily':{icon:'☀️',label:'오늘의 타로'}
+};
+let allHistory=[];
+let currentFilter='';
+
+/* 필터 버튼 */
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter=btn.dataset.type;
+    renderList();
+  });
+});
+
+/* 시간 포맷 */
+function timeAgo(iso){
+  const d=new Date(iso),now=new Date();
+  const diff=Math.floor((now-d)/1000);
+  if(diff<60)return '방금 전';
+  if(diff<3600)return Math.floor(diff/60)+'분 전';
+  if(diff<86400)return Math.floor(diff/3600)+'시간 전';
+  if(diff<604800)return Math.floor(diff/86400)+'일 전';
+  return d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+}
+function fullDate(iso){
+  return new Date(iso).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+/* 렌더링 */
+function renderList(){
+  const list=document.getElementById('historyList');
+  const empty=document.getElementById('emptyState');
+  const filtered=currentFilter?allHistory.filter(h=>h.content_type===currentFilter):allHistory;
+  if(!filtered.length){
+    list.innerHTML='';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+  list.innerHTML=filtered.map(h=>{
+    const meta=TYPE_META[h.content_type]||{icon:'📄',label:h.content_type};
+    return `<div class="h-item" data-id="${h.id}">
+      <div class="h-header" onclick="toggleDetail('${h.id}')">
+        <div class="h-icon">${meta.icon}</div>
+        <div class="h-info">
+          <div class="h-title">${esc(h.title||meta.label)}</div>
+          <div class="h-meta">${meta.label} · ${timeAgo(h.created_at)}</div>
+        </div>
+        <div class="h-actions">
+          <button class="h-btn del" onclick="event.stopPropagation();deleteItem('${h.id}')" title="삭제">✕</button>
+        </div>
+      </div>
+      <div class="h-detail" id="detail-${h.id}">
+        <div class="h-meta">${fullDate(h.created_at)}</div>
+        ${h.input_summary?`<div class="h-meta" style="margin-top:4px">${esc(h.input_summary)}</div>`:''}
+        <div class="h-result" id="result-${h.id}"><div class="loading">내용 불러오는 중...</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+
+/* 상세 토글 */
+async function toggleDetail(id){
+  const el=document.getElementById('detail-'+id);
+  const isOpen=el.classList.contains('open');
+  /* 다른거 닫기 */
+  document.querySelectorAll('.h-detail.open').forEach(d=>{d.classList.remove('open')});
+  if(isOpen)return;
+  el.classList.add('open');
+  /* 상세 로드 */
+  const resultEl=document.getElementById('result-'+id);
+  const detail=await InyeonDB.getHistoryDetail(id);
+  if(detail&&detail.result_html){
+    resultEl.innerHTML=detail.result_html;
+  }else{
+    resultEl.innerHTML='<div style="color:var(--muted);text-align:center">결과를 불러올 수 없습니다.</div>';
+  }
+}
+
+/* 삭제 */
+async function deleteItem(id){
+  if(!confirm('이 기록을 삭제하시겠습니까?'))return;
+  const ok=await InyeonDB.deleteHistory(id);
+  if(ok){
+    allHistory=allHistory.filter(h=>h.id!==id);
+    renderList();
+  }
+}
+
+/* 초기 로드 */
+async function init(){
+  const loading=document.getElementById('loadingState');
+  if(!InyeonDB._ready){
+    loading.style.display='none';
+    document.getElementById('emptyState').style.display='block';
+    document.getElementById('emptyState').querySelector('p').textContent='Supabase가 설정되지 않았습니다.';
+    return;
+  }
+  try{
+    allHistory=await InyeonDB.getHistory(null,200);
+  }catch(e){console.error(e)}
+  loading.style.display='none';
+  renderList();
+}
+init();
+</script>
+</body>
+</html>
