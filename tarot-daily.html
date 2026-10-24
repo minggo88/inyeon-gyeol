@@ -29,10 +29,10 @@ h1{font-family:"Noto Serif KR",serif;font-size:clamp(28px,5vw,44px);line-height:
 .card-back-hint{color:var(--muted);font-size:12px;margin-top:12px;opacity:.7}
 @keyframes pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
 .card-front{background:linear-gradient(145deg,rgba(201,168,76,.12),rgba(20,15,40,.95));border:2px solid rgba(201,168,76,.5);transform:rotateY(180deg);box-shadow:0 8px 40px rgba(201,168,76,.2),inset 0 0 40px rgba(201,168,76,.05);padding:16px;gap:4px}
-.card-front .card-img{width:100%;height:auto;max-height:180px;object-fit:contain;border-radius:10px;margin-bottom:4px}
-.card-front .card-name{font-family:"Noto Serif KR",serif;font-size:20px;font-weight:700;color:var(--accent2);margin-top:6px}
-.card-front .card-name-en{font-size:11px;color:var(--muted)}
-.card-front .card-num{font-size:10px;color:var(--muted);margin-top:4px}
+.card-front .card-img{width:100%;height:100%;object-fit:cover;border-radius:16px}
+.card-front .card-name{display:none}
+.card-front .card-name-en{display:none}
+.card-front .card-num{display:none}
 .card-stage:not(.revealed):hover .card-inner{transform:rotateY(12deg)}
 
 /* ── 결과 ── */
@@ -40,6 +40,11 @@ h1{font-family:"Noto Serif KR",serif;font-size:clamp(28px,5vw,44px);line-height:
 .result.show{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 .result-panel{background:linear-gradient(160deg,rgba(22,18,50,0.85),rgba(14,12,30,0.9));border:1px solid rgba(201,168,76,.25);border-radius:24px;box-shadow:var(--shadow);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:32px 24px;text-align:left}
+.card-stage-row{display:flex;align-items:center;gap:20px;justify-content:center;margin-bottom:16px}
+.card-info-side{text-align:left}
+.card-info-name{font-family:"Noto Serif KR",serif;font-size:22px;font-weight:700;color:var(--accent2)}
+.card-info-name-en{font-size:13px;color:var(--muted);margin-top:4px}
+.card-info-num{font-size:11px;color:var(--muted);margin-top:4px}
 .result-top{display:flex;gap:24px;align-items:flex-start;margin-bottom:20px}
 .result-card-col{flex:0 0 200px;text-align:center}
 .result-card-col .result-card-img{width:100%;height:auto;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.4),0 0 20px rgba(201,168,76,.15)}
@@ -87,11 +92,10 @@ h1{font-family:"Noto Serif KR",serif;font-size:clamp(28px,5vw,44px);line-height:
 
 @media(max-width:480px){
   .card-stage{width:150px;height:235px}
-  .card-front .card-img{max-height:140px}
+  .card-front .card-img{max-height:none}
   .card-front .card-name{font-size:17px}
   .result-panel{padding:22px 16px}
-  .result-top{flex-direction:column;align-items:center}
-  .result-card-col{flex:0 0 auto;width:160px}
+  .card-stage-row{flex-direction:column}
   .lucky-row{grid-template-columns:1fr 1fr 1fr;gap:8px}
 }
 </style>
@@ -185,6 +189,7 @@ const InyeonDB={
   <div class="date-display" id="date-display"></div>
   <div class="greeting" id="greeting"></div>
 
+  <div class="card-stage-row" id="card-stage-row">
   <div class="card-stage" id="card-stage" onclick="revealCard()">
     <div class="card-inner">
       <div class="card-face card-back">
@@ -199,25 +204,21 @@ const InyeonDB={
       </div>
     </div>
   </div>
+  <div class="card-info-side" id="card-info-side" style="display:none">
+    <div class="card-info-name" id="ci-name"></div>
+    <div class="card-info-name-en" id="ci-name-en"></div>
+    <div class="card-info-num" id="ci-num"></div>
+  </div>
+  </div>
 
   <div class="result" id="result">
     <div class="result-panel">
-      <div class="result-top">
-        <div class="result-card-col">
-          <img class="result-card-img" id="res-card-img" src="" alt="">
-          <div class="result-card-name" id="res-card-name"></div>
-          <div class="result-card-name-en" id="res-card-name-en"></div>
-          <div class="result-card-num" id="res-card-num"></div>
-        </div>
-        <div class="result-desc-col">
-          <div class="result-keywords" id="res-keywords"></div>
-          <div class="section-label">✦ 오늘의 메시지</div>
-          <p class="msg-text" id="res-msg"></p>
-          <div class="advice-box">
-            <strong>✦ 오늘의 조언</strong><br>
-            <span id="res-advice"></span>
-          </div>
-        </div>
+      <div class="result-keywords" id="res-keywords"></div>
+      <div class="section-label">✦ 오늘의 메시지</div>
+      <p class="msg-text" id="res-msg"></p>
+      <div class="advice-box">
+        <strong>✦ 오늘의 조언</strong><br>
+        <span id="res-advice"></span>
       </div>
 
       <div class="section-label">✦ 오늘의 행운</div>
@@ -446,6 +447,11 @@ try{
   if(seen===todayStr){
     // 이미 봤으면 바로 표시
     document.getElementById('card-stage').classList.add('revealed');
+  // 카드 옆 정보 표시
+  document.getElementById('card-info-side').style.display='';
+  document.getElementById('ci-name').textContent=todayCard.nameKo;
+  document.getElementById('ci-name-en').textContent=todayCard.name;
+  document.getElementById('ci-num').textContent=todayCard.id<22?'Major Arcana #'+todayCard.id:todayCard.nameKo;
     showResult(false);
     revealed=true;
   }
@@ -455,6 +461,11 @@ function revealCard(){
   if(revealed) return;
   revealed=true;
   document.getElementById('card-stage').classList.add('revealed');
+  // 카드 옆 정보 표시
+  document.getElementById('card-info-side').style.display='';
+  document.getElementById('ci-name').textContent=todayCard.nameKo;
+  document.getElementById('ci-name-en').textContent=todayCard.name;
+  document.getElementById('ci-num').textContent=todayCard.id<22?'Major Arcana #'+todayCard.id:todayCard.nameKo;
   try{localStorage.setItem('inyeon_daily_seen',todayStr);}catch(e){}
   setTimeout(()=>showResult(true),600);
 }
@@ -462,8 +473,6 @@ function revealCard(){
 function showResult(animate){
   const el=document.getElementById('result');
   // 키워드
-  // 결과 패널 카드 이미지
-  const resImg=document.getElementById("res-card-img");resImg.src=getCardImage(todayCard);resImg.alt=todayCard.nameKo;
   document.getElementById("res-card-name").textContent=todayCard.nameKo;
   document.getElementById("res-card-name-en").textContent=todayCard.name;
   document.getElementById("res-card-num").textContent=todayCard.id<22?"Major Arcana #"+todayCard.id:todayCard.nameKo;
