@@ -29,7 +29,7 @@ h1{font-family:"Noto Serif KR",serif;font-size:clamp(28px,5vw,44px);line-height:
 .card-back-hint{color:var(--muted);font-size:12px;margin-top:12px;opacity:.7}
 @keyframes pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
 .card-front{background:linear-gradient(145deg,rgba(201,168,76,.12),rgba(20,15,40,.95));border:2px solid rgba(201,168,76,.5);transform:rotateY(180deg);box-shadow:0 8px 40px rgba(201,168,76,.2),inset 0 0 40px rgba(201,168,76,.05);padding:16px;gap:4px}
-.card-front .card-emoji{font-size:64px}
+.card-front .card-img{width:100%;height:auto;max-height:180px;object-fit:contain;border-radius:10px;margin-bottom:4px}
 .card-front .card-name{font-family:"Noto Serif KR",serif;font-size:20px;font-weight:700;color:var(--accent2);margin-top:6px}
 .card-front .card-name-en{font-size:11px;color:var(--muted)}
 .card-front .card-num{font-size:10px;color:var(--muted);margin-top:4px}
@@ -80,7 +80,7 @@ h1{font-family:"Noto Serif KR",serif;font-size:clamp(28px,5vw,44px);line-height:
 
 @media(max-width:480px){
   .card-stage{width:150px;height:235px}
-  .card-front .card-emoji{font-size:48px}
+  .card-front .card-img{max-height:140px}
   .card-front .card-name{font-size:17px}
   .result-panel{padding:22px 16px}
   .lucky-row{grid-template-columns:1fr 1fr 1fr;gap:8px}
@@ -183,7 +183,7 @@ const InyeonDB={
         <div class="card-back-hint">터치하여 오늘의 카드 확인</div>
       </div>
       <div class="card-face card-front">
-        <div class="card-emoji" id="c-emoji"></div>
+        <img class="card-img" id="c-img" src="" alt="" loading="lazy">
         <div class="card-name" id="c-name"></div>
         <div class="card-name-en" id="c-name-en"></div>
         <div class="card-num" id="c-num"></div>
@@ -241,6 +241,18 @@ const InyeonDB={
 
 <script>
 /* ── 카드 데이터 ── */
+/* ── 카드 이미지 경로 생성 ── */
+const MAJOR_SLUGS=["fool","magician","high-priestess","empress","emperor","hierophant","lovers","chariot","strength","hermit","wheel-of-fortune","justice","hanged-man","death","temperance","devil","tower","star","moon","sun","judgement","world"];
+const MINOR_NUM_SLUGS=["ace","two","three","four","five","six","seven","eight","nine","ten"];
+const MINOR_COURT_SLUGS=["page","knight","queen","king"];
+function getCardImage(card){
+  if(card.id<22) return "card/major-"+String(card.id).padStart(2,"0")+"-"+MAJOR_SLUGS[card.id]+".png";
+  const suitOrder=["wands","cups","swords","pentacles"];
+  const suit=card.suit||suitOrder[Math.floor((card.id-22)/14)];
+  const withinSuit=(card.id-22)%14;
+  if(withinSuit<10) return "card/"+suit+"/"+suit+"-"+String(withinSuit+1).padStart(2,"0")+"-"+MINOR_NUM_SLUGS[withinSuit]+".png";
+  return "card/"+suit+"/"+suit+"-"+String(withinSuit+1).padStart(2,"0")+"-"+MINOR_COURT_SLUGS[withinSuit-10]+".png";
+}
 const CARDS=[
   {id:0,  name:'The Fool',           nameKo:'바보',           emoji:'🃏', archetype:['자유','시작','모험'],
    message:'오늘은 새로운 시작의 기운이 감돌아요. 어제까지의 걱정은 내려놓고, 가벼운 마음으로 첫 발을 내딛어 보세요.',
@@ -406,7 +418,7 @@ document.getElementById('date-display').textContent=formatDate(todayStr);
 document.getElementById('greeting').textContent=getGreeting();
 
 // 카드 앞면 세팅
-document.getElementById('c-emoji').textContent=todayCard.emoji;
+const cImg=document.getElementById('c-img');cImg.src=getCardImage(todayCard);cImg.alt=todayCard.nameKo;
 document.getElementById('c-name').textContent=todayCard.nameKo;
 document.getElementById('c-name-en').textContent=todayCard.name;
 document.getElementById('c-num').textContent='Major Arcana #'+todayCard.id;
@@ -460,7 +472,7 @@ function showResult(animate){
 }
 
 function shareResult(){
-  const text=`✦ 오늘의 타로 — ${formatDate(todayStr)}\n\n${todayCard.emoji} ${todayCard.nameKo} (${todayCard.name})\n\n💬 ${todayCard.message}\n\n✦ 조언: ${todayCard.advice}\n\n🔮 인연결에서 확인하세요`;
+  const text=`✦ 오늘의 타로 — ${formatDate(todayStr)}\n\n✦ ${todayCard.nameKo} (${todayCard.name})\n\n💬 ${todayCard.message}\n\n✦ 조언: ${todayCard.advice}\n\n🔮 인연결에서 확인하세요`;
   if(navigator.clipboard){
     navigator.clipboard.writeText(text).then(()=>{
       const btn=document.querySelector('.share-btn');

@@ -14,7 +14,7 @@
 .tarot-section::before{content:'✦';position:absolute;top:-20px;right:-10px;font-size:120px;opacity:.03;pointer-events:none}
 .tarot-hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
 .tarot-visual{flex:none;width:120px;height:170px;border-radius:14px;background:linear-gradient(145deg,rgba(201,168,76,.15),rgba(201,168,76,.05));border:2px solid rgba(201,168,76,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 0 30px rgba(201,168,76,.05)}
-.tarot-emoji{font-size:42px;margin-bottom:6px}
+.tarot-img{width:80px;height:auto;max-height:120px;object-fit:contain;border-radius:8px;margin-bottom:6px}
 .tarot-name{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;color:var(--accent2);text-align:center;line-height:1.2}
 .tarot-name-en{font-size:11px;color:var(--muted);margin-top:2px;text-align:center}
 .tarot-info{flex:1;min-width:200px}
@@ -32,7 +32,7 @@
 .tarot-runners{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
 .tarot-runner{flex:1;min-width:90px;padding:10px;border-radius:12px;background:rgba(25,20,55,.5);border:1px solid #2a2555;text-align:center;transition:border-color .3s}
 .tarot-runner:hover{border-color:rgba(201,168,76,.25)}
-.tarot-r-emoji{font-size:24px}
+.tarot-r-img{width:40px;height:auto;max-height:60px;object-fit:contain;border-radius:4px}
 .tarot-r-name{font-size:12px;color:var(--accent2);margin-top:4px;font-weight:600}
 .tarot-r-score{font-size:11px;color:var(--muted)}
 @media(max-width:860px){.tarot-hero{flex-direction:column;align-items:stretch;text-align:center}.tarot-visual{margin:0 auto}}
@@ -500,6 +500,18 @@ const SAJU_HANJA={"meta":{"source":"shunshi-kangxi-core (MIT) 康熙字典 기�
 <script>
 const ELEMENTS=['목','화','토','금','수'];
 
+/* ── 카드 이미지 경로 생성 ── */
+const MAJOR_SLUGS=["fool","magician","high-priestess","empress","emperor","hierophant","lovers","chariot","strength","hermit","wheel-of-fortune","justice","hanged-man","death","temperance","devil","tower","star","moon","sun","judgement","world"];
+const MINOR_NUM_SLUGS=["ace","two","three","four","five","six","seven","eight","nine","ten"];
+const MINOR_COURT_SLUGS=["page","knight","queen","king"];
+function getCardImage(card){
+  if(card.id<22) return "card/major-"+String(card.id).padStart(2,"0")+"-"+MAJOR_SLUGS[card.id]+".png";
+  const suitOrder=["wands","cups","swords","pentacles"];
+  const suit=card.suit||suitOrder[Math.floor((card.id-22)/14)];
+  const withinSuit=(card.id-22)%14;
+  if(withinSuit<10) return "card/"+suit+"/"+suit+"-"+String(withinSuit+1).padStart(2,"0")+"-"+MINOR_NUM_SLUGS[withinSuit]+".png";
+  return "card/"+suit+"/"+suit+"-"+String(withinSuit+1).padStart(2,"0")+"-"+MINOR_COURT_SLUGS[withinSuit-10]+".png";
+}
 /* ── 타로카드 데이터 (78장) ── */
 const TAROT_MAJOR = [
   {id:0,name:'The Fool',nameKo:'바보',emoji:'🃏',oheng:'목',yinyang:'양',tenGodAffinity:['식신','상관'],stageAffinity:['태','양'],sinGangFit:'both',starBonus:['yeokma'],description:'새로운 시작과 무한한 가능성을 상징해요',advice:'두려워하지 말고 첫 발을 내딛어 보세요'},
@@ -580,10 +592,10 @@ function tarotCard(r){
   if(md.scores.tenGod>=18)reasons.push('주도 십신과 높은 친화');
   if(md.scores.stage>=10)reasons.push('12운성 궁합 우수');
   const reasonChips=reasons.length?`<div class="tarot-chips">${reasons.map(r=>`<span class="tarot-chip">${r}</span>`).join('')}</div>`:'';
-  const runners=scored.slice(1,4).map(s=>`<div class="tarot-runner"><div class="tarot-r-emoji">${s.card.emoji}</div><div class="tarot-r-name">${s.card.nameKo}</div><div class="tarot-r-score">${(+s.score).toFixed(1)}점</div></div>`).join('');
+  const runners=scored.slice(1,4).map(s=>`<div class="tarot-runner"><img class="tarot-r-img" src="${getCardImage(s.card)}" alt="${s.card.nameKo}"><div class="tarot-r-name">${s.card.nameKo}</div><div class="tarot-r-score">${(+s.score).toFixed(1)}점</div></div>`).join('');
   return `<article class="tarot-section"><h3 style="color:var(--accent2);margin-bottom:16px">🃏 나만의 사주 타로카드</h3>
   <div class="tarot-hero">
-    <div class="tarot-visual"><div class="tarot-emoji">${card.emoji}</div><div class="tarot-name">${card.nameKo}</div><div class="tarot-name-en">${card.name}</div></div>
+    <div class="tarot-visual"><img class="tarot-img" src="${getCardImage(card)}" alt="${card.nameKo}"><div class="tarot-name">${card.nameKo}</div><div class="tarot-name-en">${card.name}</div></div>
     <div class="tarot-info"><h4>${card.nameKo} <span style="font-size:13px;color:var(--muted);font-weight:400">${card.name}</span></h4>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="tarot-chip">${OH_LABEL[card.oheng]||card.oheng}</span><span class="tarot-chip">${card.yinyang}</span><span class="tarot-chip">매칭 ${pct}%</span>${card.isMajor?'<span class="tarot-chip">메이저 아르카나</span>':''}</div>
       <div class="tarot-desc">${card.description}</div>
