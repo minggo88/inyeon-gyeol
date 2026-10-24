@@ -40,6 +40,13 @@ h1{font-family:"Noto Serif KR",serif;font-size:clamp(28px,5vw,44px);line-height:
 .result.show{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 .result-panel{background:linear-gradient(160deg,rgba(22,18,50,0.85),rgba(14,12,30,0.9));border:1px solid rgba(201,168,76,.25);border-radius:24px;box-shadow:var(--shadow);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:32px 24px;text-align:left}
+.result-top{display:flex;gap:24px;align-items:flex-start;margin-bottom:20px}
+.result-card-col{flex:0 0 200px;text-align:center}
+.result-card-col .result-card-img{width:100%;height:auto;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.4),0 0 20px rgba(201,168,76,.15)}
+.result-card-col .result-card-name{font-family:"Noto Serif KR",serif;font-size:18px;font-weight:700;color:var(--accent2);margin-top:10px}
+.result-card-col .result-card-name-en{font-size:11px;color:var(--muted);margin-top:2px}
+.result-card-col .result-card-num{font-size:10px;color:var(--muted);margin-top:2px}
+.result-desc-col{flex:1;min-width:0}
 
 .result-keywords{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;justify-content:center}
 .result-keywords span{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--accent2);padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600}
@@ -83,6 +90,8 @@ h1{font-family:"Noto Serif KR",serif;font-size:clamp(28px,5vw,44px);line-height:
   .card-front .card-img{max-height:140px}
   .card-front .card-name{font-size:17px}
   .result-panel{padding:22px 16px}
+  .result-top{flex-direction:column;align-items:center}
+  .result-card-col{flex:0 0 auto;width:160px}
   .lucky-row{grid-template-columns:1fr 1fr 1fr;gap:8px}
 }
 </style>
@@ -193,14 +202,22 @@ const InyeonDB={
 
   <div class="result" id="result">
     <div class="result-panel">
-      <div class="result-keywords" id="res-keywords"></div>
-
-      <div class="section-label">✦ 오늘의 메시지</div>
-      <p class="msg-text" id="res-msg"></p>
-
-      <div class="advice-box">
-        <strong>✦ 오늘의 조언</strong><br>
-        <span id="res-advice"></span>
+      <div class="result-top">
+        <div class="result-card-col">
+          <img class="result-card-img" id="res-card-img" src="" alt="">
+          <div class="result-card-name" id="res-card-name"></div>
+          <div class="result-card-name-en" id="res-card-name-en"></div>
+          <div class="result-card-num" id="res-card-num"></div>
+        </div>
+        <div class="result-desc-col">
+          <div class="result-keywords" id="res-keywords"></div>
+          <div class="section-label">✦ 오늘의 메시지</div>
+          <p class="msg-text" id="res-msg"></p>
+          <div class="advice-box">
+            <strong>✦ 오늘의 조언</strong><br>
+            <span id="res-advice"></span>
+          </div>
+        </div>
       </div>
 
       <div class="section-label">✦ 오늘의 행운</div>
@@ -445,6 +462,11 @@ function revealCard(){
 function showResult(animate){
   const el=document.getElementById('result');
   // 키워드
+  // 결과 패널 카드 이미지
+  const resImg=document.getElementById("res-card-img");resImg.src=getCardImage(todayCard);resImg.alt=todayCard.nameKo;
+  document.getElementById("res-card-name").textContent=todayCard.nameKo;
+  document.getElementById("res-card-name-en").textContent=todayCard.name;
+  document.getElementById("res-card-num").textContent=todayCard.id<22?"Major Arcana #"+todayCard.id:todayCard.nameKo;
   document.getElementById('res-keywords').innerHTML=todayCard.archetype.map(a=>`<span>${a}</span>`).join('');
   // 메시지·조언
   document.getElementById('res-msg').textContent=todayCard.message;
