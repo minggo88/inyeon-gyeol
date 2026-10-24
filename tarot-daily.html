@@ -473,9 +473,9 @@ function revealCard(){
 function showResult(animate){
   const el=document.getElementById('result');
   // 키워드
-  document.getElementById("res-card-name").textContent=todayCard.nameKo;
-  document.getElementById("res-card-name-en").textContent=todayCard.name;
-  document.getElementById("res-card-num").textContent=todayCard.id<22?"Major Arcana #"+todayCard.id:todayCard.nameKo;
+
+
+
   document.getElementById('res-keywords').innerHTML=todayCard.archetype.map(a=>`<span>${a}</span>`).join('');
   // 메시지·조언
   document.getElementById('res-msg').textContent=todayCard.message;
